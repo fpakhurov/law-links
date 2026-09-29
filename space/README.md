@@ -9,4 +9,4 @@ pinned: false
 ---
 
 Опрос для проверки найденных юридических ссылок (проект law-links).
-Вопросы собраны заранее (`items.jsonl`), ответы сохраняются в приватный датасет, указанный в секрете `VOTES_REPO`.
+Вопросы собраны заранее (`items.jsonl`), ответы сохраняются в открытый датасет [fpkh/law-links-votes](https://huggingface.co/datasets/fpkh/law-links-votes). Код: https://github.com/fpakhurov/law-links

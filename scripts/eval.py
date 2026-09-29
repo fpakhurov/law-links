@@ -1,7 +1,10 @@
 """Evaluate an extractor against tests/gold.json.
 
 Usage:
-    python -m scripts.eval [--gold tests/gold.json] [--verbose]
+    python -m scripts.eval [--gold tests/gold.json ...] [--verbose]
+
+By default both gold sets are evaluated: tests/gold.json (task text and
+constructed cases) and tests/gold_real.json (court decisions, a contract).
 
 Metrics are computed over link multisets (order-insensitive):
 exact match of all four fields.
@@ -19,6 +22,7 @@ from law_links.aliases import AliasIndex
 from law_links.extractor import RuleBasedExtractor
 
 Key = Tuple[object, object, object, object]
+DEFAULT_GOLD = [ROOT / "tests" / "gold.json", ROOT / "tests" / "gold_real.json"]
 
 
 def to_key(link: Dict) -> Key:
@@ -65,17 +69,19 @@ def evaluate(extractor, cases: List[Dict], verbose: bool = False) -> Dict[str, f
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--gold", type=Path, default=ROOT / "tests" / "gold.json")
+    parser.add_argument("--gold", type=Path, action="append", default=None)
     parser.add_argument("--aliases", type=Path, default=DEFAULT_ALIASES_PATH)
     parser.add_argument("--verbose", action="store_true")
     args = parser.parse_args()
 
+    gold_paths = args.gold or DEFAULT_GOLD
     extractor = RuleBasedExtractor(AliasIndex.from_json(args.aliases))
-    metrics = evaluate(extractor, load_cases(args.gold), verbose=args.verbose)
-    print(
-        "precision={precision:.3f} recall={recall:.3f} f1={f1:.3f} "
-        "tp={tp} fp={fp} fn={fn}".format(**metrics)
-    )
+    for gold_path in gold_paths:
+        metrics = evaluate(extractor, load_cases(gold_path), verbose=args.verbose)
+        print(
+            "{name}: precision={precision:.3f} recall={recall:.3f} f1={f1:.3f} "
+            "tp={tp} fp={fp} fn={fn}".format(name=gold_path.name, **metrics)
+        )
     return 0
 
 

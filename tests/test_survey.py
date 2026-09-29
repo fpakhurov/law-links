@@ -1,6 +1,6 @@
 import random
 
-from annotation.survey import analyze, claim, context, decide, wilson
+from annotation.survey import analyze, claim, context, decide, wilson, with_law_tail
 
 
 def test_claim_reading():
@@ -60,3 +60,10 @@ def test_analyze_screens_random_voters_and_recovers_precision():
     assert abs(result["precision"] - true_precision) < 0.02
     lo, hi = result["precision_ci"]
     assert lo < true_precision < hi
+
+
+def test_with_law_tail():
+    text = "положений ст. 15 УПК РФ, в условиях"
+    assert text[: with_law_tail(text, text.index(" РФ"))].endswith("УПК РФ")
+    assert with_law_tail("ст. 15 УПК Российской Федерации.", 10) == len("ст. 15 УПК Российской Федерации")
+    assert with_law_tail("ст. 15 УПК РФы", 10) == 10

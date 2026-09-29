@@ -83,6 +83,16 @@ def w2v_linker(**kw):
 
 
 BEST_TFIDF = {"threshold": 0.85, "ngram_range": (3, 5)}
+BEST_HMM = {"order": 2, "seed": 8, "lambdas": (0.8, 0.15, 0.05)}
+
+
+def context_step(kind: str):
+    from research.methods.context import AnaphoraResolver, ContextNB
+
+    key = ("context", kind)
+    if key not in _cache:
+        _cache[key] = AnaphoraResolver(DEFAULT_ALIASES_PATH) if kind == "anaphora" else ContextNB(DEFAULT_ALIASES_PATH)
+    return _cache[key]
 
 
 def tagger(kind: str, n_train: int = 20000, seed: int = 7, **kw):
@@ -115,6 +125,19 @@ VARIANTS: Dict[str, Callable[..., object]] = {
     "c_rules": lambda: Pipeline(RegexChains(), NoMentions(), tfidf_linker(**BEST_TFIDF)),
     "c_hmm": lambda **kw: Pipeline(tagger("hmm", **kw), NoMentions(), tfidf_linker(**BEST_TFIDF)),
     "c_crf": lambda **kw: Pipeline(tagger("crf", **kw), NoMentions(), tfidf_linker(**BEST_TFIDF)),
+    # Linking of enumerations: chains without a law inherit the next one.
+    "p_rules": lambda: Pipeline(RegexChains(), NoMentions(), tfidf_linker(**BEST_TFIDF), propagate=True),
+    "p_hmm": lambda **kw: Pipeline(tagger("hmm", **kw), NoMentions(), tfidf_linker(**BEST_TFIDF), propagate=True),
+    "x_rules": lambda: Pipeline(
+        RegexChains(), NoMentions(), tfidf_linker(**BEST_TFIDF), propagate=True,
+        anaphora=context_step("anaphora"), context_nb=context_step("nb"),
+    ),
+    # HMM2 chains + TF-IDF + context steps (anaphora, naive Bayes for shared law numbers).
+    "x_hmm": lambda anaphora=True, nb=True, **kw: Pipeline(
+        tagger("hmm", **{**BEST_HMM, **kw}), NoMentions(), tfidf_linker(**BEST_TFIDF), propagate=True,
+        anaphora=context_step("anaphora") if anaphora else None,
+        context_nb=context_step("nb") if nb else None,
+    ),
 }
 
 

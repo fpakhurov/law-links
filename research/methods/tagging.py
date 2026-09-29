@@ -65,6 +65,8 @@ def decode(tokens: Sequence[Tok], tags: Sequence[str]) -> List[Chain]:
 
     def close():
         nonlocal cur
+        if cur and not cur["VA"] and cur["ordinal"]:
+            cur = None  # "части второй Кодекса": a part of the code, not of an article
         if cur and (cur["VA"] or cur["VP"] or cur["VS"]):
             chains.append(
                 Chain(cur["start"], cur["end"], cur["VA"], cur["VP"], cur["VS"])
@@ -80,8 +82,10 @@ def decode(tokens: Sequence[Tok], tags: Sequence[str]) -> List[Chain]:
         if cur is None:
             if tag == "X":
                 continue
-            cur = {"start": tok.start, "end": tok.end, "VA": [], "VP": [], "VS": []}
+            cur = {"start": tok.start, "end": tok.end, "VA": [], "VP": [], "VS": [], "ordinal": False}
         if tag in ("VA", "VP", "VS"):
+            if not tok.text[0].isdigit() and len(tok.text) > 2:
+                cur["ordinal"] = True
             cur[tag].append(value_text(tok.text))
             cur["end"] = tok.end
     close()
@@ -105,18 +109,20 @@ class TaggerChains:
 
 _ART = {
     "abbr": ["ст.", "ст", "ст.ст.", "ст. ст.", "Ст."],
-    "word": ["статья", "статьи", "статье", "статью", "статьей", "статьёй", "статьями", "статьям", "статей", "Статья", "Статьей"],
+    "word": ["статья", "статьи", "статье", "статью", "статьей", "статьёй", "статьями", "статьям", "статей", "статьях", "Статья", "Статьей"],
 }
 _PT = {
     "abbr": ["п.", "п", "п.п.", "п.п", "пп.", "Пункт", "ч.", "ч", "ч.ч."],
     "word": ["пункт", "пункта", "пункту", "пунктом", "пункте", "пункты", "пунктами", "пунктов", "Пунктом",
-             "часть", "части", "частью", "частями", "частей", "Частью"],
+             "пунктах", "часть", "части", "частью", "частями", "частей", "частях", "Частью"],
 }
 _SUB = {
     "abbr": ["пп.", "подп.", "п.п.", "пп"],
-    "word": ["подпункт", "подпункта", "подпункту", "подпунктом", "подпунктами", "подпунктов", "Подпунктом"],
+    "word": ["подпункт", "подпункта", "подпункту", "подпунктом", "подпунктами", "подпунктов", "подпунктах", "Подпунктом"],
 }
 _PART_ONLY = ["ч.", "ч", "части", "частью", "часть", "частей"]
+_PARAGRAPH = {"abbr": ["абз.", "абз"], "word": ["абзац", "абзаца", "абзацем", "абзаце", "абзацу"]}
+_PARA_ORD = ["первый", "второй", "третий", "первого", "второго", "первым", "третьем", "четвертый"]
 _POINT_ONLY = ["п.", "п", "пункта", "пунктом", "пункту", "пунктами", "Пунктом", "пункт"]
 _ORD = ["первой", "второй", "третьей", "четвертой", "пятой", "первая", "вторая"]
 _LETTERS = list("абвгдежзиклмнр")
@@ -151,7 +157,8 @@ def _num(rng: random.Random) -> str:
 
 
 def _letter(rng: random.Random) -> List[Tuple[str, str]]:
-    letter = rng.choice(_LETTERS)
+    # "в" and "с" are also prepositions, so they are rarer as values
+    letter = rng.choice(_LETTERS) if rng.random() < 0.93 else rng.choice("вс")
     quote = rng.random()
     if quote < 0.35:
         return [("«", "X"), (letter, "V"), ("»", "X")]
@@ -195,8 +202,8 @@ def _level(rng, forms, role: str, letters=False, ordinal=False, trailing_dot=Fal
 
 def synth_chain(rng: random.Random) -> List[Tuple[str, str]]:
     shape = rng.choices(
-        ["a", "pa", "spa", "sppa", "p_in_part", "pp_repeat", "pa_multi", "p_only", "s_only_law"],
-        weights=[30, 30, 14, 5, 7, 5, 6, 2, 1],
+        ["a", "pa", "spa", "sppa", "p_in_part", "pp_repeat", "pa_multi", "p_only", "s_only_law", "para", "ps_reverse"],
+        weights=[30, 30, 14, 3, 12, 5, 6, 5, 1, 5, 2],
     )[0]
     trailing = rng.random() < 0.12
     art = lambda: _level(rng, _ART, "A", trailing_dot=trailing)
@@ -219,12 +226,25 @@ def synth_chain(rng: random.Random) -> List[Tuple[str, str]]:
                 + _gap(rng) + art())
     if shape == "pp_repeat":
         first = _level(rng, {"abbr": _PART_ONLY, "word": _PART_ONLY}, "P")
-        joiner = rng.choice([[(",", "X")], [("и", "X")], [("так", "X"), ("и", "X")]])
-        lead = [("как", "X")] if joiner[0][0] == "так" else []
+        joiner = rng.choice([
+            [(",", "X")], [("и", "X")], [("так", "X"), ("и", "X")], [(",", "X"), ("так", "X"), ("и", "X")],
+            [("так", "X"), ("и", "X"), ("по", "X")], [(",", "X"), ("так", "X"), ("и", "X"), ("по", "X")],
+        ])
+        lead = [("как", "X")] if any(t == "так" for t, _ in joiner) else []
         return lead + first + joiner + _level(rng, {"abbr": _PART_ONLY, "word": _PART_ONLY}, "P") + _gap(rng) + art()
     if shape == "pa_multi":
         a = _level(rng, _PT, "P") + _gap(rng) + _level(rng, _ART, "A")
-        return a + [(",", "O")] + synth_chain_simple(rng)
+        joint = rng.choice([[(",", "O")], [(",", "O")], [], [(";", "O")]])
+        return a + joint + synth_chain_simple(rng)
+    if shape == "para":
+        # "абз. 1 ст. 394", "абзацем вторым пункта 1 статьи 1068": paragraphs are dropped
+        para = [(t, r + "D" if r == "M" else r) for t, r in _marker(rng, _PARAGRAPH)]
+        para.append((rng.choice(_PARA_ORD) if rng.random() < 0.5 else str(rng.randint(1, 6)), "VD"))
+        middle = _level(rng, _PT, "P") + _gap(rng) if rng.random() < 0.5 else []
+        return para + _gap(rng) + middle + art()
+    if shape == "ps_reverse":
+        # "п. 2 пп. 2 ст. 54.1": point written before subpoint
+        return _level(rng, {"abbr": ["п.", "п"], "word": ["пункта"]}, "P") + _level(rng, _SUB, "S") + _gap(rng) + art()
     if shape == "p_only":
         return _level(rng, {"abbr": _POINT_ONLY, "word": _POINT_ONLY}, "P")
     return _level(rng, _SUB, "S") + _gap(rng) + _level(rng, _PT, "P") + _gap(rng) + art()

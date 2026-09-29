@@ -23,6 +23,18 @@ from typing import Dict, List, Optional
 
 import gradio as gr
 
+try:
+    import spaces
+
+    # The Space runs on ZeroGPU hardware, which refuses to start without a
+    # declared GPU function. The survey needs no GPU; this is never called.
+    @spaces.GPU
+    def _zero_gpu_placeholder() -> None:
+        return None
+
+except ImportError:  # outside Hugging Face Spaces
+    pass
+
 HERE = Path(__file__).resolve().parent
 ITEMS_PATH = Path(os.getenv("ITEMS_PATH", HERE / "items.jsonl"))
 VOTES_DIR = Path(os.getenv("VOTES_DIR", HERE / "votes"))

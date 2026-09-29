@@ -78,8 +78,9 @@ tests/                  pytest, gold.json
 scripts/eval.py         метрики на эталоне
 scripts/audit_aliases.py  аудит базы законов
 docs/PLAN.md            план, включая фазу 2 (датасет, Space, NER)
+docs/NOTES.md           журнал наблюдений для техотчёта
 ```
 
 ## Лицензия
 
-Код: Apache-2.0.
+Код: MIT, см. [LICENSE](LICENSE).

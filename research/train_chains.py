@@ -1,111 +1,33 @@
-"""Reference chains as sequence labeling.
+"""Train the chain HMM (law_links.chains) and write data/chain_hmm.json.
 
-Tokens get one of the tags
-    O           outside a chain
-    MS VS       subpoint marker / value      ("пп.", "подпункт" / "1", "б")
-    MP VP       point or part marker / value ("п.", "ч.", "пункта" / "2", "первой")
-    MD VD       dropped level (a part above a point in four-level chains)
-    MA VA       article marker / value       ("ст.", "статьи" / "3", "19.5")
-    X           filler inside a chain        (".", ",", "и", quotes, "в")
-and tag sequences are decoded into law_links.grammar.Chain objects, so a
-tagger is a drop-in ChainFinder.
+There is no token-level annotation, so the training data is synthetic:
+chains from a generator that covers the phrasing seen in court decisions
+(abbreviations with and without dots, "ст.ст.", "п.п.", full words in all
+cases, letters in quotes, ranges, ordinal words, repeated markers, four
+levels, paragraphs, several chains in a row) and hard negatives ("л.д.
+55-61", "ст. Отрадная", "т. 3"), inserted into real sentences from the
+corpus that contain no reference markers. Held-out test documents are not
+used (research.corpus.training_texts).
 
-Training data is synthetic: chains from a generator covering the phrasing
-seen in court decisions, inserted into real sentences from the corpus that
-contain no reference markers (their tokens are all O).
+Usage:
+    python -m research.train_chains [--n 20000] [--seed 8] [--out data/chain_hmm.json]
 """
 
+import argparse
 import random
 import re
-from dataclasses import dataclass
-from typing import Iterable, List, Optional, Sequence, Tuple
+import sys
+from typing import Iterable, List, Tuple
 
-from law_links.grammar import Chain
+from law_links import DEFAULT_CHAIN_MODEL_PATH
+from law_links.chains import ChainHMM, tokenize
 from law_links.normalize import normalize
+from research.corpus import training_texts
 
-TAGS = ["O", "MS", "VS", "MP", "VP", "MD", "VD", "MA", "VA", "X"]
-_TOKEN_RE = re.compile(
-    r"\d+(?:\.\d+)*(?:\s*-\s*\d+(?:\.\d+)*)?|[А-Яа-яЁёA-Za-z]+|\S"
-)
-_ORDINALS = {
-    "перв": "1", "втор": "2", "трет": "3", "четверт": "4", "пят": "5",
-    "шест": "6", "седьм": "7", "восьм": "8", "девят": "9", "десят": "10",
-}
 _MARKER_RE = re.compile(
     r"(?<![а-яa-z])(?:ст|стать[а-я]*|пп?|пункт[а-я]*|подп|подпункт[а-я]*|ч|част[а-я]*)\.?\s*[\d«\"]",
     re.IGNORECASE,
 )
-
-
-@dataclass(frozen=True)
-class Tok:
-    text: str
-    start: int
-    end: int
-
-
-def tokenize(text: str) -> List[Tok]:
-    return [Tok(m.group(), m.start(), m.end()) for m in _TOKEN_RE.finditer(text)]
-
-
-def value_text(token: str) -> str:
-    """Normalized value: no spaces in ranges, ordinal words to digits."""
-    lower = token.lower()
-    for stem, digit in _ORDINALS.items():
-        if lower.startswith(stem) and len(lower) > len(stem):
-            return digit
-    return re.sub(r"\s+", "", lower)
-
-
-def decode(tokens: Sequence[Tok], tags: Sequence[str]) -> List[Chain]:
-    """Group tagged tokens into chains. A chain ends at an O token or when a
-    new marker follows an article value ("ст. 15, ст. 64" is two chains)."""
-    chains: List[Chain] = []
-    cur: Optional[dict] = None
-
-    def close():
-        nonlocal cur
-        if cur and not cur["VA"] and cur["ordinal"]:
-            cur = None  # "части второй Кодекса": a part of the code, not of an article
-        if cur and (cur["VA"] or cur["VP"] or cur["VS"]):
-            chains.append(
-                Chain(cur["start"], cur["end"], cur["VA"], cur["VP"], cur["VS"])
-            )
-        cur = None
-
-    for tok, tag in zip(tokens, tags):
-        if tag == "O":
-            close()
-            continue
-        if tag.startswith("M") and cur is not None and cur["VA"]:
-            close()
-        if cur is None:
-            if tag == "X":
-                continue
-            cur = {"start": tok.start, "end": tok.end, "VA": [], "VP": [], "VS": [], "ordinal": False}
-        if tag in ("VA", "VP", "VS"):
-            if not tok.text[0].isdigit() and len(tok.text) > 2:
-                cur["ordinal"] = True
-            cur[tag].append(value_text(tok.text))
-            cur["end"] = tok.end
-    close()
-    return chains
-
-
-class TaggerChains:
-    """ChainFinder adapter for any tagger with `predict(tokens) -> tags`."""
-
-    def __init__(self, tagger) -> None:
-        self.tagger = tagger
-
-    def find(self, text: str) -> List[Chain]:
-        tokens = tokenize(text)
-        if not tokens:
-            return []
-        return decode(tokens, self.tagger.predict([t.text for t in tokens]))
-
-
-# Synthetic data.
 
 _ART = {
     "abbr": ["ст.", "ст", "ст.ст.", "ст. ст.", "Ст."],
@@ -315,3 +237,22 @@ def synth_dataset(
         tags += ["O"] * len(right)
         data.append((tokens, tags))
     return data
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--n", type=int, default=20000)
+    parser.add_argument("--seed", type=int, default=8)
+    parser.add_argument("--sentences", type=int, default=40000)
+    parser.add_argument("--out", default=str(DEFAULT_CHAIN_MODEL_PATH))
+    args = parser.parse_args()
+
+    sentences = plain_sentences(training_texts(), args.sentences)
+    data = synth_dataset(sentences, args.n, seed=args.seed)
+    ChainHMM().fit(data).save(args.out)
+    print(f"trained on {len(data)} examples from {len(sentences)} sentences -> {args.out}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -1,7 +1,7 @@
 IMAGE ?= law-links-service
 CONTAINER ?= law-links-container
 
-.PHONY: install test eval audit run docker-build docker-run docker-stop smoke
+.PHONY: install test eval audit train-chains run docker-build docker-run docker-stop smoke
 
 install:
 	pip install -r requirements-dev.txt
@@ -14,6 +14,9 @@ eval:
 
 audit:
 	python -m scripts.audit_aliases
+
+train-chains:
+	python -m research.train_chains
 
 run:
 	uvicorn main:app --host 0.0.0.0 --port 8978 --reload

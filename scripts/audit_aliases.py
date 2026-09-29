@@ -6,7 +6,7 @@ Usage:
 Checks:
 - id sequence and empty alias lists;
 - identical aliases shared by several laws;
-- aliases that become identical after lemmatization (index-level ambiguity);
+- aliases that become identical after lemmatization (resolver-level ambiguity);
 - formatting problems: whitespace, unbalanced quotes, editorial notes;
 - short or generic aliases that may produce false matches;
 - coverage of a checklist of widely cited acts.
@@ -20,8 +20,8 @@ from pathlib import Path
 from typing import Dict, List
 
 from law_links import DEFAULT_ALIASES_PATH, ROOT
-from law_links.aliases import AliasIndex
 from law_links.normalize import normalize
+from law_links.resolver import LawResolver
 
 CHECKLIST = {
     "Конституция Российской Федерации": "Конституция РФ",
@@ -70,7 +70,11 @@ def main() -> None:
     args = parser.parse_args()
 
     raw: Dict[str, List[str]] = json.loads(args.aliases.read_text("utf-8"))
-    index = AliasIndex.from_json(args.aliases)
+    resolver = LawResolver(raw)
+    by_key: Dict[str, Dict[int, set]] = defaultdict(lambda: defaultdict(set))
+    for law_id, key, alias in zip(resolver.alias_law, resolver.alias_keys, (a for v in raw.values() for a in v)):
+        by_key[key][law_id].add(normalize(alias).lower())
+    n_conflicts = sum(1 for laws in by_key.values() if len(laws) > 1)
     ids = sorted(int(k) for k in raw)
     n_aliases = sum(len(v) for v in raw.values())
     out: List[str] = ["# Аудит law_aliases.json", ""]
@@ -82,7 +86,7 @@ def main() -> None:
         f"- законов: {len(raw)}, алиасов: {n_aliases}",
         f"- диапазон id: {ids[0]}..{ids[-1]}, пропуски: {missing_ids or 'нет'}",
         f"- законов без алиасов: {empty or 'нет'}",
-        f"- неоднозначных ключей в индексе (после лемматизации): {index.n_conflicts}",
+        f"- неоднозначных названий после лемматизации: {n_conflicts}",
         "",
     ]
 
@@ -101,11 +105,10 @@ def main() -> None:
     ]
 
     lemma_conflicts = []
-    for path, terminals in index.iter_terminals():
-        law_ids = sorted({t.law_id for t in terminals})
-        aliases = {normalize(t.alias).lower() for t in terminals}
-        if len(law_ids) > 1 and len(aliases) > 1:
-            lemma_conflicts.append((" ".join(path), law_ids, sorted(aliases)))
+    for key, laws in by_key.items():
+        aliases = set().union(*laws.values())
+        if len(laws) > 1 and len(aliases) > 1:
+            lemma_conflicts.append((key, sorted(laws), sorted(aliases)))
     out += [
         f"## Разные алиасы, совпавшие после лемматизации: {len(lemma_conflicts)}",
         "",
@@ -151,13 +154,13 @@ def main() -> None:
 
     cov_rows = []
     for name, abbr in CHECKLIST.items():
-        found = index.lookup(name)
-        found_abbr = index.lookup(abbr) if abbr else []
+        found = resolver.lookup(name)
+        found_abbr = resolver.lookup(abbr) if abbr else []
         cov_rows.append([name, found or "нет", (found_abbr or "нет") if abbr else "-"])
     out += [
         "## Покрытие часто цитируемых актов",
         "",
-        "Поиск по полному названию и сокращению через индекс (учёт склонений).",
+        "Поиск по полному названию и сокращению с точностью до лемм.",
         "",
         md_table(["акт", "law_id по названию", "law_id по сокращению"], cov_rows),
         "",

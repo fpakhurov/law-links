@@ -15,9 +15,8 @@ from pathlib import Path
 import uvicorn
 from fastapi import Depends, FastAPI, Request
 
-from law_links import DEFAULT_ALIASES_PATH
-from law_links.aliases import AliasIndex
-from law_links.extractor import LinkExtractor, RuleBasedExtractor
+from law_links import DEFAULT_ALIASES_PATH, DEFAULT_CHAIN_MODEL_PATH
+from law_links.extractor import Extractor, LinkExtractor
 from law_links.schemas import LinksResponse, TextRequest
 
 logging.basicConfig(
@@ -27,13 +26,13 @@ logging.basicConfig(
 logger = logging.getLogger("law_links.service")
 
 ALIASES_PATH = Path(os.getenv("LAW_ALIASES_PATH", str(DEFAULT_ALIASES_PATH)))
+CHAIN_MODEL_PATH = Path(os.getenv("CHAIN_MODEL_PATH", str(DEFAULT_CHAIN_MODEL_PATH)))
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("Starting service, aliases: %s", ALIASES_PATH)
-    index = AliasIndex.from_json(ALIASES_PATH)
-    app.state.extractor = RuleBasedExtractor(index)
+    logger.info("Starting service, aliases: %s, chain model: %s", ALIASES_PATH, CHAIN_MODEL_PATH)
+    app.state.extractor = Extractor.from_files(ALIASES_PATH, CHAIN_MODEL_PATH)
     yield
     logger.info("Service stopped")
 

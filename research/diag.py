@@ -1,7 +1,7 @@
 """Print false positives and false negatives of a variant on a split.
 
 Usage:
-    python -m research.diag "s1_tfidf?threshold=0.7" [--split dev]
+    python -m research.diag final [--split dev]
 """
 
 import argparse

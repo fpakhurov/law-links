@@ -1,15 +1,19 @@
 import pytest
 
-from law_links import DEFAULT_ALIASES_PATH
-from law_links.aliases import AliasIndex
-from law_links.extractor import RuleBasedExtractor
+from law_links import DEFAULT_ALIASES_PATH, DEFAULT_CHAIN_MODEL_PATH
+from law_links.extractor import Extractor
 
 
 @pytest.fixture(scope="session")
-def index() -> AliasIndex:
-    return AliasIndex.from_json(DEFAULT_ALIASES_PATH)
+def extractor() -> Extractor:
+    return Extractor.from_files(DEFAULT_ALIASES_PATH, DEFAULT_CHAIN_MODEL_PATH)
 
 
 @pytest.fixture(scope="session")
-def extractor(index) -> RuleBasedExtractor:
-    return RuleBasedExtractor(index)
+def resolver(extractor):
+    return extractor.resolver
+
+
+@pytest.fixture(scope="session")
+def chains(extractor):
+    return extractor.chains

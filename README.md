@@ -25,7 +25,7 @@ Swagger: http://localhost:8978/docs, проверка состояния: `GET /
 pip install -r requirements-dev.txt
 python main.py            # или: make run
 make test                 # pytest
-make eval                 # precision / recall / F1 на tests/gold.json
+make eval                 # precision / recall / F1 на tests/gold.json и tests/gold_real.json
 make audit                # отчёт о качестве law_aliases.json -> docs/aliases_audit.md
 ```
 
@@ -51,7 +51,14 @@ make audit                # отчёт о качестве law_aliases.json -> d
 
 ## Качество
 
-`tests/gold.json`: текст из условия задания (34 ссылки, разметка вручную) и 10 контрольных случаев, включая отрицательные. Текущий результат `make eval`: precision 1.000, recall 1.000, F1 1.000 (44 ссылки). Эталон пока маленький, цифры будут падать по мере его расширения.
+Два эталона, оба размечены вручную:
+
+| Эталон | Что внутри | Ссылок | Precision | Recall | F1 |
+|---|---|---|---|---|---|
+| `tests/gold.json` | текст из условия задания и 10 контрольных случаев, включая отрицательные | 44 | 1.000 | 1.000 | 1.000 |
+| `tests/gold_real.json` | 6 судебных актов с sudact.ru (арбитраж, КоАП, трудовой, уголовный, налоговый) и типовой договор как отрицательный пример | 212 | 0.934 | 0.731 | 0.820 |
+
+Тексты лежат в `tests/real/`, источник каждого указан в эталоне. Судебные акты и типовые договоры, утвержденные постановлением Правительства, не охраняются авторским правом (п. 6 ст. 1259 ГК РФ). Разбор ошибок на реальных текстах в [docs/NOTES.md](docs/NOTES.md).
 
 ## Проверка law_aliases.json
 

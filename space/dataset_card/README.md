@@ -20,7 +20,7 @@ size_categories:
 ## Файлы
 
 - `items/survey1.jsonl` - вопросы. Поля: `item_id`, `kind` (`verify` - проверка найденной ссылки, `missed` - кандидат на пропуск, `control` - вопрос с известным ответом), `doc_id`, `source` (ссылка на решение на sudact.ru и строки), `before` / `fragment` / `after` (контекст, выделенный фрагмент), `claim` (как программа поняла фрагмент), `links` (ссылки в формате `{law_id, article, point_article, subpoint_article}`, `law_id` по словарю задания), `expected` (ответ для `control`).
-- `votes/votes-*.jsonl` - ответы, дописываются во время опроса. Поля: `vote_id`, `item_id`, `kind`, `answer` (`yes`, `no`, `no_law`, `no_numbers`, `no_ref`, `unsure`), `voter` (случайный идентификатор браузера), `ms` (время на ответ), `time` (UTC).
+- `votes/votes-*.jsonl` - ответы, дописываются во время опроса. Поля: `vote_id`, `item_id`, `kind`, `answer` (`yes`, `no`, `no_law`, `no_numbers`, `no_ref`, `unsure`), `voter` (случайный идентификатор браузера), `name` (придуманное участником имя), `ms` (время на ответ), `time` (UTC).
 
 ## Происхождение и ограничения
 

@@ -223,8 +223,9 @@ _start_scheduler()
 demo = build()
 
 if __name__ == "__main__":
-    # Spaces set GRADIO_SERVER_NAME=0.0.0.0 and GRADIO_SERVER_PORT=7860; locally 127.0.0.1:7861
+    # A Space (SPACE_ID is set) serves 0.0.0.0:7860; locally 127.0.0.1:7861
+    on_space = bool(os.getenv("SPACE_ID"))
     demo.launch(
-        server_name=os.getenv("GRADIO_SERVER_NAME", "127.0.0.1"),
-        server_port=int(os.getenv("GRADIO_SERVER_PORT", "7861")),
+        server_name=os.getenv("GRADIO_SERVER_NAME", "0.0.0.0" if on_space else "127.0.0.1"),
+        server_port=int(os.getenv("GRADIO_SERVER_PORT", "7860" if on_space else "7861")),
     )

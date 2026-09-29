@@ -11,6 +11,9 @@ floor, bigram and unigram counts use add-k smoothing. With a uniform prior
 over laws argmax LLR is the Bayes decision; the LLR value itself tells
 whether the prefix looks like a law name at all (threshold).
 
+The background model stands for "not a law name", so law mentions found
+by the alias trie are cut out of the corpus before training it.
+
 Prefix scores are accumulated token by token, so a chain costs
 O(tokens x laws).
 """
@@ -23,7 +26,7 @@ from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 import numpy as np
 
-from law_links.aliases import LawMention, Lemmatizer, tokenize
+from law_links.aliases import AliasIndex, LawMention, Lemmatizer, tokenize
 from law_links.grammar import Chain
 from law_links.normalize import normalize
 from research.corpus import training_texts
@@ -35,7 +38,7 @@ BOS = "<s>"
 class BigramLM:
     """Interpolated bigram model: l2 * P_bi + l1 * P_uni + l0 / V."""
 
-    def __init__(self, lambdas=(0.6, 0.35, 0.05), k: float = 0.1) -> None:
+    def __init__(self, lambdas=(0.6, 0.35, 0.05), k: float = 0.01) -> None:
         self.l2, self.l1, self.l0 = lambdas
         self.k = k
         self.uni: Counter = Counter()
@@ -104,7 +107,7 @@ class NgramLinker:
         aliases_path: Path,
         threshold: float = 5.0,
         lambdas=(0.6, 0.35, 0.05),
-        k: float = 0.1,
+        k: float = 0.01,
         bg_docs: int = 400,
         max_tokens: int = 20,
         max_chars: int = 250,
@@ -119,12 +122,17 @@ class NgramLinker:
         }
         self.law_lm = LawLMs(law_sents, lambdas, k)
         self.laws = np.array(self.law_lm.laws)
+        index = AliasIndex.from_json(aliases_path)
         bg_sents: List[List[str]] = []
         for doc in training_texts(bg_docs):
-            for line in normalize(doc).split("\n"):
-                words = self.lemmas(line)
-                if words:
-                    bg_sents.append(words)
+            for line in map(normalize, doc.split("\n")):
+                pos = 0
+                for mention in index.find_mentions(line) + [None]:
+                    end = mention.start if mention else len(line)
+                    words = self.lemmas(line[pos:end])
+                    if words:
+                        bg_sents.append(words)
+                    pos = mention.end if mention else pos
         self.bg = BigramLM(lambdas, k).fit(bg_sents)
 
     def lemmas(self, text: str) -> List[str]:

@@ -44,16 +44,61 @@ def alias_index() -> AliasIndex:
     return _cache["index"]
 
 
+def cached(name: str, factory: Callable[..., object], kw: Dict[str, object]) -> object:
+    """Build a linker once per parameter set; `threshold` is applied to the
+    cached instance, so threshold sweeps do not retrain anything."""
+    kw = dict(kw)
+    threshold = kw.pop("threshold", None)
+    key = (name, tuple(sorted(kw.items())))
+    if key not in _cache:
+        _cache[key] = factory(**kw)
+    linker = _cache[key]
+    if threshold is not None:
+        linker.threshold = threshold
+    return linker
+
+
 def tfidf_linker(**kw):
     from research.methods.tfidf import TfidfLinker
 
-    return TfidfLinker(DEFAULT_ALIASES_PATH, **kw)
+    return cached("tfidf", lambda **k: TfidfLinker(DEFAULT_ALIASES_PATH, **k), kw)
 
 
 def fuzzy_linker(**kw):
     from research.methods.fuzzy import FuzzyLinker
 
-    return FuzzyLinker(DEFAULT_ALIASES_PATH, **kw)
+    return cached("fuzzy", lambda **k: FuzzyLinker(DEFAULT_ALIASES_PATH, **k), kw)
+
+
+def ngram_linker(**kw):
+    from research.methods.ngram import NgramLinker
+
+    return cached("ngram", lambda **k: NgramLinker(DEFAULT_ALIASES_PATH, **k), kw)
+
+
+def w2v_linker(**kw):
+    from research.methods.embeddings import Word2VecLinker
+
+    return cached("w2v", lambda **k: Word2VecLinker(DEFAULT_ALIASES_PATH, **k), kw)
+
+
+BEST_TFIDF = {"threshold": 0.85, "ngram_range": (3, 5)}
+
+
+def tagger(kind: str, n_train: int = 20000, seed: int = 7, **kw):
+    """Chain tagger trained on synthetic chains in corpus sentences."""
+    from research.corpus import training_texts
+    from research.methods.hmm import CRFTagger, HMMTagger
+    from research.methods.tagging import TaggerChains, plain_sentences, synth_dataset
+
+    key = ("tagger", kind, n_train, seed, tuple(sorted(kw.items())))
+    if key not in _cache:
+        if "sentences" not in _cache:
+            _cache["sentences"] = plain_sentences(training_texts(), 40000)
+        data = synth_dataset(_cache["sentences"], n_train, seed=seed)
+        model = HMMTagger(**kw) if kind == "hmm" else CRFTagger(**kw)
+        _cache[key] = TaggerChains(model.fit(data))
+    return _cache[key]
 
 
 # Each variant takes keyword parameters: "s1_tfidf?threshold=0.5&max_tokens=10".
@@ -64,6 +109,12 @@ VARIANTS: Dict[str, Callable[..., object]] = {
     "b1_rules": lambda: Pipeline(RegexChains(), TrieMentions(alias_index()), NearestRightLinker()),
     "s1_tfidf": lambda **kw: Pipeline(RegexChains(), NoMentions(), tfidf_linker(**kw)),
     "s2_fuzzy": lambda **kw: Pipeline(RegexChains(), NoMentions(), fuzzy_linker(**kw)),
+    "s3_ngram": lambda **kw: Pipeline(RegexChains(), NoMentions(), ngram_linker(**kw)),
+    "s4_w2v": lambda **kw: Pipeline(RegexChains(), NoMentions(), w2v_linker(**kw)),
+    # Chain finders, all with the best TF-IDF linker.
+    "c_rules": lambda: Pipeline(RegexChains(), NoMentions(), tfidf_linker(**BEST_TFIDF)),
+    "c_hmm": lambda **kw: Pipeline(tagger("hmm", **kw), NoMentions(), tfidf_linker(**BEST_TFIDF)),
+    "c_crf": lambda **kw: Pipeline(tagger("crf", **kw), NoMentions(), tfidf_linker(**BEST_TFIDF)),
 }
 
 

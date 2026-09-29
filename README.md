@@ -78,6 +78,19 @@ make audit                # отчёт о качестве law_aliases.json -> d
 - около 300 алиасов с непарными кавычками или пометкой редакции в названии;
 - 37 коротких названий в кавычках (`«О связи»`, `«О рекламе»`) без номера и даты.
 
+## Разметка
+
+Новые эталоны собираются в приложении на Gradio ([docs/ANNOTATION.md](docs/ANNOTATION.md)):
+
+```bash
+pip install -r annotation/requirements.txt
+python -m annotation.app                                  # http://127.0.0.1:7860
+python -m annotation.make_tasks train2 --mode suggest     # новый пакет из корпуса
+python -m annotation.export test2 --out tests/gold_test2.json   # согласие разметчиков и экспорт
+```
+
+Пакеты: `test2` (12 документов, без подсказок модели) - второй независимый test для `v1.0.1`; `train1` (10 документов, с подсказками) - обучающая разметка. Документ, размеченный двумя людьми по-разному, в эталон не попадает, пока его не разметит `adjudicator`.
+
 ## Структура
 
 ```
@@ -96,8 +109,10 @@ tests/                  pytest, эталоны gold.json, gold_real.json, gold_t
 scripts/eval.py         метрики на эталоне
 scripts/audit_aliases.py  аудит базы законов
 research/               корпус, выбор test, обучение HMM, бенчмарк (не входит в образ)
+annotation/             приложение разметки на Gradio, пакеты задач, экспорт в эталон (не входит в образ)
 docs/PLAN.md            план, включая фазу 2 (датасет, Space, NER)
 docs/RESEARCH.md        исследование методов и результаты
+docs/ANNOTATION.md      правила и порядок разметки
 REPORT.md               технический отчёт
 docs/NOTES.md           журнал наблюдений для техотчёта
 ```

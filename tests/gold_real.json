@@ -1,0 +1,1367 @@
+{
+ "cases": [
+  {
+   "id": "real_arb_supply",
+   "text_file": "real/arb_supply_a40_173526_23.txt",
+   "source": "https://sudact.ru/arbitral/doc/9Kyll8W5h1oC/",
+   "notes": [
+    "'п. 2.3, 2.6 Договора', 'п. 5.3 Договора', 'п. 7.1 Договора': пункты договора, не ссылки",
+    "'п.п. 3, 4 ст. 487': 'п.п.' читается как 'пункты' (в ст. 487 ГК РФ есть пп. 3 и 4)",
+    "Диапазоны '167-171', '180-182' остаются одной строкой, как '43.2-6' в условии"
+   ],
+   "links": [
+    {
+     "law_id": 5,
+     "article": "486",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 5,
+     "article": "506",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 5,
+     "article": "516",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 5,
+     "article": "330",
+     "point_article": "1",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 5,
+     "article": "487",
+     "point_article": "3",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 5,
+     "article": "487",
+     "point_article": "4",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 5,
+     "article": "457",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 5,
+     "article": "1102",
+     "point_article": "1",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 5,
+     "article": "425",
+     "point_article": "3",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 5,
+     "article": "330",
+     "point_article": "1",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 0,
+     "article": "65",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 0,
+     "article": "65",
+     "point_article": "1",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 0,
+     "article": "9",
+     "point_article": "2",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 0,
+     "article": "110",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 5,
+     "article": "8",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 5,
+     "article": "9",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 5,
+     "article": "10",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 5,
+     "article": "11",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 5,
+     "article": "12",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 5,
+     "article": "307",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 5,
+     "article": "309",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 5,
+     "article": "310",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 5,
+     "article": "330",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 5,
+     "article": "425",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 5,
+     "article": "457",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 5,
+     "article": "486",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 5,
+     "article": "487",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 5,
+     "article": "516",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 5,
+     "article": "1102",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 0,
+     "article": "4",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 0,
+     "article": "64",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 0,
+     "article": "65",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 0,
+     "article": "71",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 0,
+     "article": "101",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 0,
+     "article": "102",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 0,
+     "article": "110",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 0,
+     "article": "167-171",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 0,
+     "article": "180-182",
+     "point_article": null,
+     "subpoint_article": null
+    }
+   ]
+  },
+  {
+   "id": "real_koap_15_33_2",
+   "text_file": "real/koap_15_33_2_zaigraevo.txt",
+   "source": "https://sudact.ru/regular/doc/5QTYzSnDXpW4/",
+   "notes": [
+    "Закон 27-ФЗ в тексте назван по старой редакции ('в системе обязательного пенсионного страхования'), в словаре id 498 под новой",
+    "'Закона 27-ФЗ', 'Закона N 27-ФЗ': номер без знака '№' или с латинской 'N'",
+    "'п.18.1 Постановления Пленума', 'пункта 39 Инструкции': актов нет в словаре"
+   ],
+   "links": [
+    {
+     "law_id": 17,
+     "article": "15.33.2",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 17,
+     "article": "15.33.2",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 498,
+     "article": "11",
+     "point_article": "2.2",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 17,
+     "article": "2.9",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 17,
+     "article": "15.33.2",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 17,
+     "article": "2.1",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 17,
+     "article": "2.2",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 498,
+     "article": "15",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 498,
+     "article": "11",
+     "point_article": "2.2",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 498,
+     "article": "11",
+     "point_article": "2.2",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 498,
+     "article": "15",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 498,
+     "article": "15",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 17,
+     "article": "30.7",
+     "point_article": "1",
+     "subpoint_article": "3"
+    },
+    {
+     "law_id": 17,
+     "article": "2.9",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 17,
+     "article": "24.5",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 17,
+     "article": "30.6",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 17,
+     "article": "30.7",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 17,
+     "article": "15.33.2",
+     "point_article": null,
+     "subpoint_article": null
+    }
+   ]
+  },
+  {
+   "id": "real_koap_19_5",
+   "text_file": "real/koap_19_5_vilyuchinsk.txt",
+   "source": "https://sudact.ru/regular/doc/Rmd0Iyvgi2rd/",
+   "notes": [
+    "'п. 6 ч. 1 ст. 24.5': пункт внутри части, часть идет в point_article, пункт в subpoint_article",
+    "Точка после номера статьи: 'ст. 19.5. КоАП РФ'",
+    "'ч.1 так и ч.24 ст.19.5 названного Кодекса': отсылка к КоАП без названия, ожидается как ссылка",
+    "'ст.19.5 КоАП', 'ст. 30.7 КоАП': сокращение без 'РФ', в словаре такого алиаса нет",
+    "Пункты Правил (постановления Правительства № 354, № 491, № 1110) и Постановления Пленума ВС: актов нет в словаре"
+   ],
+   "links": [
+    {
+     "law_id": 17,
+     "article": "19.5",
+     "point_article": "1",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 17,
+     "article": "19.5",
+     "point_article": "24",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 17,
+     "article": "19.5",
+     "point_article": "1",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 17,
+     "article": "19.5",
+     "point_article": "1",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 17,
+     "article": "24.5",
+     "point_article": "1",
+     "subpoint_article": "6"
+    },
+    {
+     "law_id": 17,
+     "article": "19.5",
+     "point_article": "24",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 17,
+     "article": "19.5",
+     "point_article": "1",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 17,
+     "article": "19.5",
+     "point_article": "24",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 17,
+     "article": "24.5",
+     "point_article": "1",
+     "subpoint_article": "6"
+    },
+    {
+     "law_id": 17,
+     "article": "30.6",
+     "point_article": "3",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 17,
+     "article": "24.1",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 17,
+     "article": "26.1",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 17,
+     "article": "2.1",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 17,
+     "article": "19.5",
+     "point_article": "1",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 17,
+     "article": "19.5",
+     "point_article": "24",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 17,
+     "article": "19.5",
+     "point_article": "24",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 17,
+     "article": "19.5",
+     "point_article": "24",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 7,
+     "article": "161",
+     "point_article": "2.3",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 7,
+     "article": "162",
+     "point_article": "2",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 17,
+     "article": "19.5",
+     "point_article": "24",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 17,
+     "article": "19.5",
+     "point_article": "1",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 17,
+     "article": "19.5",
+     "point_article": "1",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 17,
+     "article": "26.1",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 17,
+     "article": "26.7",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 17,
+     "article": "26.11",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 7,
+     "article": "155",
+     "point_article": "2",
+     "subpoint_article": "1"
+    },
+    {
+     "law_id": 7,
+     "article": "156",
+     "point_article": "9.1",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 7,
+     "article": "156",
+     "point_article": "9.2",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 7,
+     "article": "161",
+     "point_article": "2.3",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 7,
+     "article": "162",
+     "point_article": "2",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 244,
+     "article": "8",
+     "point_article": "1",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 244,
+     "article": "8",
+     "point_article": "2",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 7,
+     "article": "193",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 17,
+     "article": "19.5",
+     "point_article": "24",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 17,
+     "article": "19.5",
+     "point_article": "1",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 17,
+     "article": "24.5",
+     "point_article": "1",
+     "subpoint_article": "6"
+    },
+    {
+     "law_id": 17,
+     "article": "19.5",
+     "point_article": "24",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 17,
+     "article": "19.5",
+     "point_article": "1",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 17,
+     "article": "24.5",
+     "point_article": "1",
+     "subpoint_article": "6"
+    },
+    {
+     "law_id": 17,
+     "article": "19.5",
+     "point_article": "1",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 17,
+     "article": "4.5",
+     "point_article": "3",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 17,
+     "article": "19.5",
+     "point_article": "1",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 17,
+     "article": "19.5",
+     "point_article": "24",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 17,
+     "article": "4.5",
+     "point_article": "3",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 17,
+     "article": "19.5",
+     "point_article": "1",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 17,
+     "article": "19.5",
+     "point_article": "24",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 17,
+     "article": "19.5",
+     "point_article": "1",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 17,
+     "article": "19.5",
+     "point_article": "24",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 17,
+     "article": "30.7",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 17,
+     "article": "19.5",
+     "point_article": "1",
+     "subpoint_article": null
+    }
+   ]
+  },
+  {
+   "id": "real_labour_reinstatement",
+   "text_file": "real/labour_reinstatement_vladivostok.txt",
+   "source": "https://sudact.ru/regular/doc/fVNxlI6obJ68/ (мотивировочная часть)",
+   "notes": [
+    "Четыре уровня 'подпункт \"г\" пункта 6 части 1 статьи 81': в схеме три поля, берем две нижние единицы (subpoint='г', point='6'), часть отбрасывается",
+    "'пункт 6 части 1 статьи 81': пункт внутри части, point='1', subpoint='6' (как 'п. 6 ч. 1 ст. 24.5 КоАП')",
+    "Порядковые слова 'части первой' приводятся к цифре '1'",
+    "Абзацы ('абз. 1 ст. 394', 'абзац второй части 1 статьи 21') в схеме не представлены, отбрасываются",
+    "'статьи 81 Кодекса': отсылка к ТК РФ без названия",
+    "Пункты постановлений Пленума ВС с 'Трудового кодекса' в названии не являются ссылками на ТК",
+    "'ст.ст. 194 -199 ГПК РФ': диапазон с пробелом, значение '194-199'"
+   ],
+   "links": [
+    {
+     "law_id": 10,
+     "article": "2",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 10,
+     "article": "3",
+     "point_article": "1",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 10,
+     "article": "21",
+     "point_article": "1",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 10,
+     "article": "22",
+     "point_article": "2",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 10,
+     "article": "192",
+     "point_article": "1",
+     "subpoint_article": "3"
+    },
+    {
+     "law_id": 10,
+     "article": "81",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 10,
+     "article": "81",
+     "point_article": "6",
+     "subpoint_article": "г"
+    },
+    {
+     "law_id": 10,
+     "article": "192",
+     "point_article": "5",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 10,
+     "article": "193",
+     "point_article": "3",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 10,
+     "article": "193",
+     "point_article": "4",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 10,
+     "article": "81",
+     "point_article": "1",
+     "subpoint_article": "6"
+    },
+    {
+     "law_id": 10,
+     "article": "81",
+     "point_article": "6",
+     "subpoint_article": "г"
+    },
+    {
+     "law_id": 10,
+     "article": "81",
+     "point_article": "6",
+     "subpoint_article": "г"
+    },
+    {
+     "law_id": 13,
+     "article": "159",
+     "point_article": "3",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 10,
+     "article": "193",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 10,
+     "article": "193",
+     "point_article": "1",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 10,
+     "article": "81",
+     "point_article": "1",
+     "subpoint_article": "1"
+    },
+    {
+     "law_id": 10,
+     "article": "394",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 10,
+     "article": "234",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 10,
+     "article": "234",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 10,
+     "article": "234",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 10,
+     "article": "234",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 10,
+     "article": "234",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 10,
+     "article": "396",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 10,
+     "article": "394",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 5,
+     "article": "151",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 10,
+     "article": "237",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 10,
+     "article": "237",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 6,
+     "article": "194-199",
+     "point_article": null,
+     "subpoint_article": null
+    }
+   ]
+  },
+  {
+   "id": "real_criminal_appeal",
+   "text_file": "real/criminal_appeal_moscow.txt",
+   "source": "https://sudact.ru/regular/doc/0xcj4EDoJFY0/ (строки 13-18 и 84-107 текста)",
+   "notes": [
+    "Буквенные пункты в кавычках: 'п. «б» ч. 3.1 ст. 72 УК РФ'",
+    "'примечания 4 к ст. 158 УК РФ': примечание в схеме не представлено, ссылка на статью",
+    "'ч. 6 ст. 15, ст.ст. 64 и 73 УК РФ': несколько цепочек перед одним названием закона"
+   ],
+   "links": [
+    {
+     "law_id": 13,
+     "article": "159",
+     "point_article": "4",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "159",
+     "point_article": "4",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "159",
+     "point_article": "4",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "69",
+     "point_article": "3",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "72",
+     "point_article": "3.1",
+     "subpoint_article": "б"
+    },
+    {
+     "law_id": 13,
+     "article": "72",
+     "point_article": "3.4",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "158",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 12,
+     "article": "73",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 12,
+     "article": "220",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 12,
+     "article": "302",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 12,
+     "article": "304",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 12,
+     "article": "307",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 12,
+     "article": "308",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "6",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "60",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "61",
+     "point_article": "1",
+     "subpoint_article": "и"
+    },
+    {
+     "law_id": 13,
+     "article": "61",
+     "point_article": "1",
+     "subpoint_article": "г"
+    },
+    {
+     "law_id": 13,
+     "article": "61",
+     "point_article": "2",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "63",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "43",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "47",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "62",
+     "point_article": "1",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "15",
+     "point_article": "6",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "64",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "73",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "69",
+     "point_article": "3",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "82",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "82",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "58",
+     "point_article": "1",
+     "subpoint_article": "б"
+    }
+   ]
+  },
+  {
+   "id": "real_tax_vat",
+   "text_file": "real/tax_vat_a40_222315_24.txt",
+   "source": "https://sudact.ru/arbitral/doc/wkjJhnd4gklc/ (строки 58-63 и 77-116 текста)",
+   "notes": [
+    "'Закона N 63-ФЗ': алиас 'ФЗ №63-ФЗ' есть у законов 246 и 396, по контексту (адвокатские опросы) это 396",
+    "'п. 2 пп. 2 ст. 54.1': обратный порядок пункта и подпункта, по смыслу п. 2 подп. 2",
+    "'п. 3, 6 - 8 ст. 171': диапазон с пробелами, значение '6-8'",
+    "'главой 21 НК РФ', 'главы 16 НК РФ': главы в схеме не представлены, не ссылки",
+    "'статья 106, пункт 1 статьи 114 НК РФ': перечень цепочек перед одним законом",
+    "Пункт 19 постановления Пленума ВС/ВАС 'О ... части первой Налогового кодекса': не ссылка на НК"
+   ],
+   "links": [
+    {
+     "law_id": 0,
+     "article": "64",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 0,
+     "article": "68",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 0,
+     "article": "75",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 0,
+     "article": "88",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 396,
+     "article": "6",
+     "point_article": "3",
+     "subpoint_article": "2"
+    },
+    {
+     "law_id": 15,
+     "article": "90",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 15,
+     "article": "90",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 0,
+     "article": "71",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 0,
+     "article": "71",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 396,
+     "article": "6",
+     "point_article": "3",
+     "subpoint_article": "2"
+    },
+    {
+     "law_id": 15,
+     "article": "54.1",
+     "point_article": "1",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 15,
+     "article": "54.1",
+     "point_article": "1",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 15,
+     "article": "54.1",
+     "point_article": "1",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 15,
+     "article": "54.1",
+     "point_article": "2",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 15,
+     "article": "171",
+     "point_article": "2",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 15,
+     "article": "172",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 15,
+     "article": "171",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 15,
+     "article": "171",
+     "point_article": "3",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 15,
+     "article": "171",
+     "point_article": "6-8",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 15,
+     "article": "172",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 15,
+     "article": "172",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 15,
+     "article": "169",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 15,
+     "article": "169",
+     "point_article": "2",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 15,
+     "article": "169",
+     "point_article": "5",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 15,
+     "article": "169",
+     "point_article": "5.1",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 15,
+     "article": "169",
+     "point_article": "6",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 15,
+     "article": "23",
+     "point_article": "1",
+     "subpoint_article": "3"
+    },
+    {
+     "law_id": 15,
+     "article": "54.1",
+     "point_article": "2",
+     "subpoint_article": "2"
+    },
+    {
+     "law_id": 15,
+     "article": "169",
+     "point_article": "6",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 15,
+     "article": "171",
+     "point_article": "2",
+     "subpoint_article": "1"
+    },
+    {
+     "law_id": 15,
+     "article": "172",
+     "point_article": "1",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 15,
+     "article": "122",
+     "point_article": "3",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 15,
+     "article": "54.1",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 15,
+     "article": "112",
+     "point_article": "4",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 15,
+     "article": "114",
+     "point_article": "1",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 15,
+     "article": "114",
+     "point_article": "3",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 15,
+     "article": "112",
+     "point_article": "1",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 15,
+     "article": "114",
+     "point_article": "3",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 15,
+     "article": "122",
+     "point_article": "1",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 15,
+     "article": "129.3",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 15,
+     "article": "129.5",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 15,
+     "article": "122",
+     "point_article": "3",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 15,
+     "article": "122",
+     "point_article": "1",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 15,
+     "article": "110",
+     "point_article": "2",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 15,
+     "article": "110",
+     "point_article": "2",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 15,
+     "article": "54.1",
+     "point_article": "1",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 15,
+     "article": "106",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 15,
+     "article": "114",
+     "point_article": "1",
+     "subpoint_article": null
+    }
+   ]
+  },
+  {
+   "id": "real_contract_negative",
+   "text_file": "real/contract_cold_water_typical.txt",
+   "source": "https://www.consultant.ru/document/cons_doc_LAW_150372/ (постановление № 645 и разделы III, IV, VIII, XII, XIV, XV типового договора холодного водоснабжения)",
+   "notes": [
+    "Законы упоминаются без статей ('Федеральным законом \"О водоснабжении и водоотведении\"'), ссылок нет",
+    "Внутренние ссылки договора ('пунктом 7 настоящего договора', 'пунктом 48(1) настоящего договора') не являются ссылками на закон"
+   ],
+   "links": []
+  }
+ ]
+}

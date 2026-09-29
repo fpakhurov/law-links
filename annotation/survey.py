@@ -54,6 +54,9 @@ _MARKER_RE = re.compile(
     r"(?<![а-яa-z])(?:ст|стать[а-я]*|пп?|пункт[а-я]*|подп|подпункт[а-я]*|ч|част[а-я]*)\.?\s*\d[\d.]*",
     re.IGNORECASE,
 )
+# The resolver keeps the shortest of equally good name prefixes ("ст. 15 УПК"
+# for "ст. 15 УПК РФ"); for display the fragment takes the country suffix too.
+_LAW_TAIL_RE = re.compile(r"\s+(?:РФ|России|Российской\s+Федерации)(?![А-Яа-яЁё])")
 # Codes used to corrupt control items: the reading names another code.
 _CODE_SWAP = {5: 13, 13: 5, 15: 10, 10: 15, 17: 12, 12: 17, 0: 6, 6: 0, 7: 8, 8: 7}
 
@@ -69,6 +72,11 @@ def context(text: str, start: int, end: int, chars: int = CONTEXT_CHARS) -> Tupl
     before = ("… " + text[left:start].lstrip()) if left > 0 else text[:start]
     after = (text[end:right].rstrip() + " …") if right < len(text) else text[end:]
     return before, text[start:end], after
+
+
+def with_law_tail(text: str, end: int) -> int:
+    match = _LAW_TAIL_RE.match(text, end)
+    return match.end() if match else end
 
 
 def _values(values: Sequence[Optional[str]]) -> List[str]:
@@ -106,6 +114,7 @@ def doc_items(extractor: Extractor, doc_id: str, text: str, source: str, titles)
     items = []
     covered: List[Tuple[int, int]] = []
     for n, (start, end, links) in enumerate(group_detected(extractor.extract_detailed(text))):
+        end = with_law_tail(text, end)
         covered.append((start, end))
         before, fragment, after = context(text, start, end)
         items.append({
@@ -148,7 +157,7 @@ def control_items(extractor: Extractor, titles, n: int, rng: random.Random) -> L
     rng.shuffle(correct)
     items = []
     for i, (case, start, end, links) in enumerate(correct[:n]):
-        before, fragment, after = context(case["text"], start, end)
+        before, fragment, after = context(case["text"], start, with_law_tail(case["text"], end))
         corrupt = i % 2 == 1
         shown = [dict(l) for l in links]
         if corrupt:

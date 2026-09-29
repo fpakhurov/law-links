@@ -1,6 +1,6 @@
 # Опрос: проверка найденных ссылок
 
-Полной разметки не будет, поэтому качество оценивается ответами «да/нет» одногруппников на заранее собранные вопросы. Приложение опроса (`space/`) работает на Hugging Face Space, ответы уходят в приватный датасет.
+Полной разметки не будет, поэтому качество оценивается ответами «да/нет» одногруппников на заранее собранные вопросы. Приложение опроса (`space/`) работает на Hugging Face Space, ответы уходят в открытый датасет [fpkh/law-links-votes](https://huggingface.co/datasets/fpkh/law-links-votes) (CC-BY-4.0), участники предупреждены об этом во вступлении.
 
 ## Что спрашиваем
 
@@ -16,7 +16,7 @@
 
 ## Развёртывание
 
-1. Приватный датасет для ответов: `hf repos create fpkh/law-links-votes --repo-type dataset --private`.
+1. Открытый датасет для ответов: `hf repos create fpkh/law-links-votes --repo-type dataset`, карточка и вопросы: `hf upload fpkh/law-links-votes dataset_card/ . --repo-type dataset` (см. `space/dataset_card/`).
 2. Space: `hf repos create fpkh/law-links-survey --repo-type space --space-sdk gradio` (публичный, иначе одногруппники не откроют).
 3. В настройках Space (Settings -> Variables and secrets):
    - секрет `HF_TOKEN`: fine-grained токен с правом записи только в `fpkh/law-links-votes` (https://huggingface.co/settings/tokens);

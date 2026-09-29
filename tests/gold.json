@@ -1,0 +1,335 @@
+{
+ "cases": [
+  {
+   "id": "readme_test_text",
+   "text_file": "readme_text.txt",
+   "notes": [
+    "Конституция РФ и ФЗ 'О банках и банковской деятельности' отсутствуют в law_aliases.json, ссылки не ожидаются",
+    "'ФЗ №20-456' и 'рандомного кодекса' не являются известными законами",
+    "'п. 10 АПК': статья не указана, article=null"
+   ],
+   "links": [
+    {
+     "law_id": 15,
+     "article": "374",
+     "point_article": "1",
+     "subpoint_article": "1"
+    },
+    {
+     "law_id": 13,
+     "article": "105",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 0,
+     "article": null,
+     "point_article": "10",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "105",
+     "point_article": "5",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "158",
+     "point_article": "3",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 5,
+     "article": "30",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "159",
+     "point_article": "4",
+     "subpoint_article": "12"
+    },
+    {
+     "law_id": 13,
+     "article": "228",
+     "point_article": "2",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 15,
+     "article": "275",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 8,
+     "article": "90",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 10,
+     "article": "70",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 6,
+     "article": "213",
+     "point_article": "1",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 0,
+     "article": "20",
+     "point_article": "а",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 984,
+     "article": "16",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 330,
+     "article": "14",
+     "point_article": "2",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 224,
+     "article": "19",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 412,
+     "article": "9",
+     "point_article": "р",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 284,
+     "article": "16",
+     "point_article": "1",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 362,
+     "article": "22",
+     "point_article": "б",
+     "subpoint_article": "2"
+    },
+    {
+     "law_id": 332,
+     "article": "12",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 249,
+     "article": "20",
+     "point_article": "3",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 174,
+     "article": "14",
+     "point_article": "1",
+     "subpoint_article": "4"
+    },
+    {
+     "law_id": 174,
+     "article": "14",
+     "point_article": "1",
+     "subpoint_article": "5"
+    },
+    {
+     "law_id": 174,
+     "article": "14",
+     "point_article": "1",
+     "subpoint_article": "6"
+    },
+    {
+     "law_id": 174,
+     "article": "14",
+     "point_article": "1",
+     "subpoint_article": "8"
+    },
+    {
+     "law_id": 5,
+     "article": "34",
+     "point_article": "1",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 15,
+     "article": "66",
+     "point_article": "3.345",
+     "subpoint_article": "а"
+    },
+    {
+     "law_id": 15,
+     "article": "66",
+     "point_article": "3.345",
+     "subpoint_article": "б"
+    },
+    {
+     "law_id": 15,
+     "article": "66",
+     "point_article": "3.345",
+     "subpoint_article": "с"
+    },
+    {
+     "law_id": 15,
+     "article": "66",
+     "point_article": "23",
+     "subpoint_article": "а"
+    },
+    {
+     "law_id": 15,
+     "article": "66",
+     "point_article": "23",
+     "subpoint_article": "б"
+    },
+    {
+     "law_id": 15,
+     "article": "66",
+     "point_article": "23",
+     "subpoint_article": "с"
+    },
+    {
+     "law_id": 17,
+     "article": "30.1",
+     "point_article": "3",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 0,
+     "article": "211",
+     "point_article": null,
+     "subpoint_article": null
+    }
+   ]
+  },
+  {
+   "id": "readme_curl",
+   "text": "Согласно статье 23 Налогового кодекса и ст. 145 Гражданского кодекса",
+   "links": [
+    {
+     "law_id": 15,
+     "article": "23",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 5,
+     "article": "145",
+     "point_article": null,
+     "subpoint_article": null
+    }
+   ]
+  },
+  {
+   "id": "readme_expand",
+   "text": "пп. 1, 2, 3 п. 2 ст. 3 НК РФ",
+   "links": [
+    {
+     "law_id": 15,
+     "article": "3",
+     "point_article": "2",
+     "subpoint_article": "1"
+    },
+    {
+     "law_id": 15,
+     "article": "3",
+     "point_article": "2",
+     "subpoint_article": "2"
+    },
+    {
+     "law_id": 15,
+     "article": "3",
+     "point_article": "2",
+     "subpoint_article": "3"
+    }
+   ]
+  },
+  {
+   "id": "value_formats",
+   "text": "См. ч. 4.6 ст. 43.2-6 УК РФ.",
+   "links": [
+    {
+     "law_id": 13,
+     "article": "43.2-6",
+     "point_article": "4.6",
+     "subpoint_article": null
+    }
+   ]
+  },
+  {
+   "id": "list_with_i",
+   "text": "пункты 5 и 6 статьи 7 ТК РФ",
+   "links": [
+    {
+     "law_id": 10,
+     "article": "7",
+     "point_article": "5",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 10,
+     "article": "7",
+     "point_article": "6",
+     "subpoint_article": null
+    }
+   ]
+  },
+  {
+   "id": "lowercase_abbr",
+   "text": "по ст. 158 ук рф",
+   "links": [
+    {
+     "law_id": 13,
+     "article": "158",
+     "point_article": null,
+     "subpoint_article": null
+    }
+   ]
+  },
+  {
+   "id": "declension_instr",
+   "text": "предусмотренных статьей 81 Трудовым кодексом",
+   "links": [
+    {
+     "law_id": 10,
+     "article": "81",
+     "point_article": null,
+     "subpoint_article": null
+    }
+   ]
+  },
+  {
+   "id": "neg_foreign_words_between",
+   "text": "Согласно ст. 5 некоторого документа и НК РФ.",
+   "links": []
+  },
+  {
+   "id": "neg_sentence_boundary",
+   "text": "Это ст. 5. НК РФ не применяется.",
+   "links": []
+  },
+  {
+   "id": "neg_unknown_law",
+   "text": "Согласно ст. 37 ФЗ №20-456, прокурор вправе",
+   "links": []
+  },
+  {
+   "id": "neg_law_without_chain",
+   "text": "Налоговый кодекс РФ регулирует налоги.",
+   "links": []
+  }
+ ]
+}

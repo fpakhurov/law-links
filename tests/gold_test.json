@@ -1,0 +1,709 @@
+{
+ "cases": [
+  {
+   "id": "test_regular_U3gD4T1Wl6P",
+   "text_file": "test_texts/regular_U3gD4T1Wl6P.txt",
+   "source": "https://sudact.ru/regular/doc/U3gD4T1Wl6P/ (строки 16-33)",
+   "notes": [
+    "'ст. Отрадная': станица, не статья",
+    "'статьей 20 настоящего Федерального закона': отсылка к 580-ФЗ без названия",
+    "Закон Краснодарского края № 4906-КЗ и Положение о Министерстве транспорта: актов нет в словаре"
+   ],
+   "links": [
+    {
+     "law_id": 17,
+     "article": "14.1",
+     "point_article": "2",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 81,
+     "article": "3",
+     "point_article": "1",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 81,
+     "article": "3",
+     "point_article": "7",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 81,
+     "article": "5",
+     "point_article": "1",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 81,
+     "article": "5",
+     "point_article": "2",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 81,
+     "article": "20",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 81,
+     "article": "6",
+     "point_article": "2",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 81,
+     "article": "10",
+     "point_article": "1",
+     "subpoint_article": "5"
+    },
+    {
+     "law_id": 81,
+     "article": "10",
+     "point_article": "1",
+     "subpoint_article": "6"
+    },
+    {
+     "law_id": 5,
+     "article": "23",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 134,
+     "article": "2",
+     "point_article": "6",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 81,
+     "article": "2",
+     "point_article": "4",
+     "subpoint_article": null
+    }
+   ]
+  },
+  {
+   "id": "test_regular_eArUffYRqhNy",
+   "text_file": "test_texts/regular_eArUffYRqhNy.txt",
+   "source": "https://sudact.ru/regular/doc/eArUffYRqhNy/ (строки 188-230)",
+   "notes": [
+    "'п.п «и», «к» ч. 1 и ч. 2 ст. 61 УК РФ': буквенные пункты части 1 и отдельно часть 2",
+    "'л.д. 71-103, 104', 'л.д. 38-41': листы дела, не ссылки"
+   ],
+   "links": [
+    {
+     "law_id": 13,
+     "article": "158",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "159.2",
+     "point_article": "3",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 12,
+     "article": "252",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "159.2",
+     "point_article": "3",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "61",
+     "point_article": "1",
+     "subpoint_article": "и"
+    },
+    {
+     "law_id": 13,
+     "article": "61",
+     "point_article": "1",
+     "subpoint_article": "к"
+    },
+    {
+     "law_id": 13,
+     "article": "61",
+     "point_article": "2",
+     "subpoint_article": null
+    }
+   ]
+  },
+  {
+   "id": "test_regular_uAK0TgBosalr",
+   "text_file": "test_texts/regular_uAK0TgBosalr.txt",
+   "source": "https://sudact.ru/regular/doc/uAK0TgBosalr/ (строки 124-143)",
+   "notes": [
+    "'(пункт 1 статьи 1085)', '(статья 1089)', '(статья 1094)' внутри цитаты ст. 1083 ГК: закон не назван и нет отсылочного слова, не размечаются",
+    "'частью 2 статьи 109, статьями 143, 238 Уголовного кодекса': перечень цепочек перед одним законом"
+   ],
+   "links": [
+    {
+     "law_id": 13,
+     "article": "47",
+     "point_article": "3",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "143",
+     "point_article": "2",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "47",
+     "point_article": "3",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 5,
+     "article": "1064",
+     "point_article": "1",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 5,
+     "article": "1064",
+     "point_article": "2",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 5,
+     "article": "1068",
+     "point_article": "1",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 5,
+     "article": "1083",
+     "point_article": "2",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 5,
+     "article": "1083",
+     "point_article": "3",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 5,
+     "article": "1064",
+     "point_article": "1",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "109",
+     "point_article": "2",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "143",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "238",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 5,
+     "article": "1068",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "263",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "264",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 5,
+     "article": "1079",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 5,
+     "article": "151",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 5,
+     "article": "151",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 5,
+     "article": "1068",
+     "point_article": "1",
+     "subpoint_article": null
+    }
+   ]
+  },
+  {
+   "id": "test_regular_MhaSAQRjJ6dX",
+   "text_file": "test_texts/regular_MhaSAQRjJ6dX.txt",
+   "source": "https://sudact.ru/regular/doc/MhaSAQRjJ6dX/ (строки 9-19)",
+   "notes": [
+    "'статьями 3 – 6 Федерального закона ... № 64-ФЗ': диапазон статей, значение '3-6'",
+    "'частью 3 пункта 2 статьи 3': нижняя единица в subpoint, следующая в point",
+    "Длинные перечни 'частью 3 статьи 205, пунктами «а», «е», «ж» части 2 статьи 105 Уголовного кодекса РФ'"
+   ],
+   "links": [
+    {
+     "law_id": 245,
+     "article": "3-6",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 11,
+     "article": "106",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 245,
+     "article": "3",
+     "point_article": "2",
+     "subpoint_article": "3"
+    },
+    {
+     "law_id": 18,
+     "article": "84",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "226",
+     "point_article": "4",
+     "subpoint_article": "а"
+    },
+    {
+     "law_id": 13,
+     "article": "226",
+     "point_article": "4",
+     "subpoint_article": "б"
+    },
+    {
+     "law_id": 13,
+     "article": "105",
+     "point_article": "2",
+     "subpoint_article": "а"
+    },
+    {
+     "law_id": 13,
+     "article": "105",
+     "point_article": "2",
+     "subpoint_article": "б"
+    },
+    {
+     "law_id": 13,
+     "article": "105",
+     "point_article": "2",
+     "subpoint_article": "ж"
+    },
+    {
+     "law_id": 13,
+     "article": "105",
+     "point_article": "2",
+     "subpoint_article": "з"
+    },
+    {
+     "law_id": 13,
+     "article": "105",
+     "point_article": "2",
+     "subpoint_article": "к"
+    },
+    {
+     "law_id": 13,
+     "article": "139",
+     "point_article": "2",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "78",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "209",
+     "point_article": "2",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "222",
+     "point_article": "3",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "205",
+     "point_article": "3",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "105",
+     "point_article": "2",
+     "subpoint_article": "а"
+    },
+    {
+     "law_id": 13,
+     "article": "105",
+     "point_article": "2",
+     "subpoint_article": "е"
+    },
+    {
+     "law_id": 13,
+     "article": "105",
+     "point_article": "2",
+     "subpoint_article": "ж"
+    },
+    {
+     "law_id": 13,
+     "article": "222",
+     "point_article": "3",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "222",
+     "point_article": "3",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "223",
+     "point_article": "3",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "317",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "222",
+     "point_article": "3",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "105",
+     "point_article": "2",
+     "subpoint_article": "ж"
+    },
+    {
+     "law_id": 13,
+     "article": "105",
+     "point_article": "2",
+     "subpoint_article": "з"
+    },
+    {
+     "law_id": 13,
+     "article": "317",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "222",
+     "point_article": "3",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "317",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "126",
+     "point_article": "3",
+     "subpoint_article": "а"
+    },
+    {
+     "law_id": 13,
+     "article": "163",
+     "point_article": "3",
+     "subpoint_article": "а"
+    },
+    {
+     "law_id": 13,
+     "article": "163",
+     "point_article": "3",
+     "subpoint_article": "б"
+    },
+    {
+     "law_id": 13,
+     "article": "317",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "30",
+     "point_article": "3",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "105",
+     "point_article": "2",
+     "subpoint_article": "а"
+    },
+    {
+     "law_id": 13,
+     "article": "105",
+     "point_article": "2",
+     "subpoint_article": "б"
+    },
+    {
+     "law_id": 13,
+     "article": "105",
+     "point_article": "2",
+     "subpoint_article": "ж"
+    },
+    {
+     "law_id": 13,
+     "article": "105",
+     "point_article": "2",
+     "subpoint_article": "з"
+    },
+    {
+     "law_id": 13,
+     "article": "317",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "317",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "69",
+     "point_article": "3",
+     "subpoint_article": null
+    }
+   ]
+  },
+  {
+   "id": "test_regular_oAuUVSD3UqxC",
+   "text_file": "test_texts/regular_oAuUVSD3UqxC.txt",
+   "source": "https://sudact.ru/regular/doc/oAuUVSD3UqxC/ (строки 1-38)",
+   "notes": [
+    "'для целей статей 228, 228.1, 229 и 229.1 УК РФ' внутри названия постановления Правительства: ссылки на статьи УК",
+    "'ст.ст. 314-316 УПК РФ': диапазон, значение '314-316'"
+   ],
+   "links": [
+    {
+     "law_id": 13,
+     "article": "228",
+     "point_article": "1",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "228",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "228.1",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "229",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "229.1",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 12,
+     "article": "314-316",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "228",
+     "point_article": "1",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 12,
+     "article": "81",
+     "point_article": "3",
+     "subpoint_article": "2"
+    },
+    {
+     "law_id": 12,
+     "article": "316",
+     "point_article": "10",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 12,
+     "article": "314",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 12,
+     "article": "316",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 13,
+     "article": "228",
+     "point_article": "1",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 12,
+     "article": "317",
+     "point_article": null,
+     "subpoint_article": null
+    }
+   ]
+  },
+  {
+   "id": "test_regular_Zp8b1OKKzjUI",
+   "text_file": "test_texts/regular_Zp8b1OKKzjUI.txt",
+   "source": "https://sudact.ru/regular/doc/Zp8b1OKKzjUI/ (строки 56-81)",
+   "notes": [
+    "'п.п. 2- 5 ч. 1 ст. 6 ... N 152 ФЗ «О персональных данных»': диапазон пунктов внутри части, номер закона без '№' и дефиса",
+    "'п. 16 Приказа Минцифры', 'п.6 Государственного контракта': не ссылки на закон из словаря"
+   ],
+   "links": [
+    {
+     "law_id": 428,
+     "article": "17",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 428,
+     "article": "16",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 428,
+     "article": "17",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 17,
+     "article": "14.1",
+     "point_article": "2",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 330,
+     "article": "6",
+     "point_article": "1",
+     "subpoint_article": "2-5"
+    },
+    {
+     "law_id": 17,
+     "article": "13.11",
+     "point_article": "1",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 17,
+     "article": "30.7",
+     "point_article": "1",
+     "subpoint_article": "3"
+    },
+    {
+     "law_id": 17,
+     "article": "13.11",
+     "point_article": "1",
+     "subpoint_article": null
+    },
+    {
+     "law_id": 17,
+     "article": "24.5",
+     "point_article": "1",
+     "subpoint_article": "2"
+    }
+   ]
+  },
+  {
+   "id": "test_arbitral_Fo6xATmI8WVR",
+   "text_file": "test_texts/arbitral_Fo6xATmI8WVR.txt",
+   "source": "https://sudact.ru/arbitral/doc/Fo6xATmI8WVR/ (строки 2-36)",
+   "notes": [
+    "Вводная часть постановления: мало ссылок, много номеров ('11АП-18838/2022', 'ком. №№ 39,40', '№ 032А')"
+   ],
+   "links": [
+    {
+     "law_id": 0,
+     "article": "51",
+     "point_article": null,
+     "subpoint_article": null
+    },
+    {
+     "law_id": 0,
+     "article": "121",
+     "point_article": null,
+     "subpoint_article": null
+    }
+   ]
+  },
+  {
+   "id": "test_arbitral_SON8kPAd6B1v",
+   "text_file": "test_texts/arbitral_SON8kPAd6B1v.txt",
+   "source": "https://sudact.ru/arbitral/doc/SON8kPAd6B1v/ (строки 160-179)",
+   "notes": [
+    "Описательная часть без ссылок; 'ООО АПК «Хопер»': АПК в названии компании"
+   ],
+   "links": []
+  }
+ ]
+}

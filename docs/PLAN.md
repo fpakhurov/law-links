@@ -96,7 +96,7 @@ homework_1/
 - HF Model: ONNX int8 + model card (данные, метрики на gold, ограничения, пример кода).
 - HF Dataset: gold + silver, версии тегами, dataset card, CC-BY-4.0.
 - HF Space (Gradio): демо, разметка, арена.
-- Лицензии: код Apache-2.0, данные CC-BY-4.0. Проверить право распространять `law_aliases.json` (получить согласие автора курса) и лицензии rubert-tiny2 / pymorphy3.
+- Лицензии: код MIT, данные CC-BY-4.0. Проверить право распространять `law_aliases.json` (получить согласие автора курса) и лицензии rubert-tiny2 / pymorphy3.
 
 ### 8.3 Space: разметка и арена
 

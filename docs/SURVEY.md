@@ -16,12 +16,12 @@
 
 ## Развёртывание
 
-1. Открытый датасет для ответов: `hf repos create fpkh/law-links-votes --repo-type dataset`, карточка и вопросы: `hf upload fpkh/law-links-votes dataset_card/ . --repo-type dataset` (см. `space/dataset_card/`).
+1. Открытый датасет для ответов: `hf repos create fpkh/law-links-votes --repo-type dataset`, карточка и вопросы: `hf upload fpkh/law-links-votes space/dataset_card . --repo-type dataset`.
 2. Space: `hf repos create fpkh/law-links-survey --repo-type space --space-sdk gradio` (публичный, иначе одногруппники не откроют).
 3. В настройках Space (Settings -> Variables and secrets):
    - секрет `HF_TOKEN`: fine-grained токен с правом записи только в `fpkh/law-links-votes` (https://huggingface.co/settings/tokens);
    - переменная `VOTES_REPO` = `fpkh/law-links-votes`.
-4. Загрузка приложения: `python -m annotation.survey space survey1`, затем `hf upload fpkh/law-links-survey space . --repo-type space --exclude "votes/*"`.
+4. Загрузка приложения: `python -m annotation.survey space survey1`, затем `hf upload fpkh/law-links-survey space . --repo-type space --exclude "votes/*" --exclude "dataset_card/*"`.
 5. Ссылка для одногруппников: https://huggingface.co/spaces/fpkh/law-links-survey
 
 Бесплатный Space засыпает после 48 часов без посетителей, первый заход после этого ждёт запуска около минуты. Ответы отправляются в датасет раз в 2 минуты: при перезапуске Space теряются ответы последних 2 минут.

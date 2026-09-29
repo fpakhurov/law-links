@@ -6,7 +6,7 @@ from scripts.eval import evaluate, load_cases
 CASES = load_cases(ROOT / "tests" / "gold_real.json")
 NEGATIVE = [c for c in CASES if not c["links"]]
 # Baseline on real texts. Raise it when the extractor improves, never lower it.
-F1_FLOOR = 0.82
+F1_FLOOR = 0.99
 
 
 def test_real_gold_f1_floor(extractor):

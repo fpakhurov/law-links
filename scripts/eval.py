@@ -17,9 +17,8 @@ from collections import Counter
 from pathlib import Path
 from typing import Dict, List, Tuple
 
-from law_links import DEFAULT_ALIASES_PATH, ROOT
-from law_links.aliases import AliasIndex
-from law_links.extractor import RuleBasedExtractor
+from law_links import DEFAULT_ALIASES_PATH, DEFAULT_CHAIN_MODEL_PATH, ROOT
+from law_links.extractor import Extractor
 
 Key = Tuple[object, object, object, object]
 DEFAULT_GOLD = [ROOT / "tests" / "gold.json", ROOT / "tests" / "gold_real.json"]
@@ -71,11 +70,12 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--gold", type=Path, action="append", default=None)
     parser.add_argument("--aliases", type=Path, default=DEFAULT_ALIASES_PATH)
+    parser.add_argument("--chain-model", type=Path, default=DEFAULT_CHAIN_MODEL_PATH)
     parser.add_argument("--verbose", action="store_true")
     args = parser.parse_args()
 
     gold_paths = args.gold or DEFAULT_GOLD
-    extractor = RuleBasedExtractor(AliasIndex.from_json(args.aliases))
+    extractor = Extractor.from_files(args.aliases, args.chain_model)
     for gold_path in gold_paths:
         metrics = evaluate(extractor, load_cases(gold_path), verbose=args.verbose)
         print(

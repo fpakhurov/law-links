@@ -9,6 +9,7 @@ Every part gets the normalized text, offsets are shared.
 
 import bisect
 import json
+import re
 from pathlib import Path
 from typing import Dict, List, Optional, Protocol, Sequence, Tuple
 
@@ -33,19 +34,56 @@ class Linker(Protocol):
     ) -> Optional[LawMention]: ...
 
 
+# Between chains of one enumeration: "ч. 6 ст. 15, ст.ст. 64 и 73 УК РФ".
+_ENUM_GAP_RE = re.compile(r"^[\s,;]*(?:(?:и|а также|также|так и|так и по|и по)[\s,]*)?$", re.IGNORECASE)
+
+
 class Pipeline:
-    def __init__(self, chains: ChainFinder, mentions: MentionFinder, linker: Linker) -> None:
+    """Optional steps after linking:
+    anaphora   "ст. 19.5 названного Кодекса" takes the last code linked before
+    propagate  a chain without a law takes the law of the next chain when
+               only commas or "и" stand between them
+    context_nb a law number shared by several acts is resolved by context
+    """
+
+    def __init__(
+        self,
+        chains: ChainFinder,
+        mentions: MentionFinder,
+        linker: Linker,
+        propagate: bool = False,
+        anaphora=None,
+        context_nb=None,
+    ) -> None:
         self.chains = chains
         self.mentions = mentions
         self.linker = linker
+        self.propagate = propagate
+        self.anaphora = anaphora
+        self.context_nb = context_nb
 
     def extract(self, text: str) -> List[LawLink]:
         norm = normalize(text)
         mentions = sorted(self.mentions.find(norm), key=lambda m: m.start)
         starts = [m.start for m in mentions]
+        chains = self.chains.find(norm)
+        laws = [self.linker.link(norm, chain, mentions, starts) for chain in chains]
+        if self.context_nb is not None:
+            for i, m in enumerate(laws):
+                if m is not None and len(m.candidates) > 1:
+                    law = self.context_nb.choose(norm, chains[i].start, m.end, m.candidates)
+                    laws[i] = LawMention(law, m.start, m.end, m.candidates)
+        if self.anaphora is not None:
+            for i, chain in enumerate(chains):
+                if laws[i] is None:
+                    laws[i] = self.anaphora.resolve(norm, chain.end, laws[:i])
+        if self.propagate:
+            for i in range(len(chains) - 2, -1, -1):
+                if laws[i] is None and laws[i + 1] is not None:
+                    if _ENUM_GAP_RE.match(norm[chains[i].end : chains[i + 1].start]):
+                        laws[i] = laws[i + 1]
         links: List[LawLink] = []
-        for chain in self.chains.find(norm):
-            mention = self.linker.link(norm, chain, mentions, starts)
+        for chain, mention in zip(chains, laws):
             if mention is not None:
                 links.extend(expand(chain, mention.law_id))
         return links

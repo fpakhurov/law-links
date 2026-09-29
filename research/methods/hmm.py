@@ -158,7 +158,7 @@ class CRFTagger:
             f: Dict[str, object] = {
                 "bias": 1.0,
                 "shape": shapes[i],
-                "low": tok.lower() if len(tok) < 15 else "<long>",
+                "low": tok.lower() if tok.isalpha() and len(tok) < 15 else shapes[i],
                 "suf3": tok.lower()[-3:],
                 "upper": tok[:1].isupper(),
             }
@@ -167,7 +167,10 @@ class CRFTagger:
                 f[f"shape{d}"] = shapes[j] if 0 <= j < len(tokens) else "<pad>"
             for d in (-1, 1):
                 j = i + d
-                f[f"low{d}"] = tokens[j].lower() if 0 <= j < len(tokens) and len(tokens[j]) < 15 else "<pad>"
+                f[f"low{d}"] = (
+                    tokens[j].lower() if 0 <= j < len(tokens) and tokens[j].isalpha() and len(tokens[j]) < 15
+                    else shapes[j] if 0 <= j < len(tokens) else "<pad>"
+                )
             feats.append(f)
         return feats
 

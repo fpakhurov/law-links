@@ -2,3 +2,7 @@
 {"time": "2026-09-29T19:07:46+00:00", "variant": "s1_tfidf?threshold=0.85&ngram_range=(3,5)", "split": "dev", "precision": 0.925, "recall": 0.8672, "f1": 0.8952, "tp": 222, "fp": 18, "fn": 34, "ms_per_1k_chars": 34.0535}
 {"time": "2026-09-29T19:07:51+00:00", "variant": "x_rules", "split": "dev", "precision": 0.8745, "recall": 0.8984, "f1": 0.8863, "tp": 230, "fp": 33, "fn": 26, "ms_per_1k_chars": 34.1473}
 {"time": "2026-09-29T19:07:59+00:00", "variant": "x_hmm", "split": "dev", "precision": 0.9883, "recall": 0.9922, "f1": 0.9903, "tp": 254, "fp": 3, "fn": 2, "ms_per_1k_chars": 34.2904}
+{"time": "2026-09-29T19:08:37+00:00", "variant": "b1_rules", "split": "test", "precision": 0.8852, "recall": 0.5243, "f1": 0.6585, "tp": 54, "fp": 7, "fn": 49, "ms_per_1k_chars": 1.9007}
+{"time": "2026-09-29T19:08:42+00:00", "variant": "s1_tfidf?threshold=0.85&ngram_range=(3,5)", "split": "test", "precision": 0.875, "recall": 0.6117, "f1": 0.72, "tp": 63, "fp": 9, "fn": 40, "ms_per_1k_chars": 25.2754}
+{"time": "2026-09-29T19:08:44+00:00", "variant": "x_rules", "split": "test", "precision": 0.8072, "recall": 0.6505, "f1": 0.7204, "tp": 67, "fp": 16, "fn": 36, "ms_per_1k_chars": 25.2532}
+{"time": "2026-09-29T19:08:50+00:00", "variant": "x_hmm", "split": "test", "precision": 0.97, "recall": 0.9417, "f1": 0.9557, "tp": 97, "fp": 3, "fn": 6, "ms_per_1k_chars": 27.4902}

@@ -8,7 +8,9 @@ only shows them and stores answers.
              Answers: yes | no_law | no_numbers | no_ref | unsure.
     missed   a candidate the extractor did not return: a chain without a
              resolved law, or a marker with a number outside any chain.
-             Answers: yes | no | unsure. Gives recall relative to the pool.
+             Answers: yes | other_doc | no | unsure ("other_doc": a point of
+             a contract, rules, an order - not a missed law reference).
+             Gives recall relative to the pool.
     control  a verify item with a known answer, from the dev gold sets:
              a correct reading (expected yes) or a deliberately corrupted
              one (another article number or another code, expected no).
@@ -49,11 +51,14 @@ from research.sample_test import window
 from scripts.eval import load_cases, to_key
 
 SURVEY_DIR = DATA_DIR / "survey"
-CONTEXT_CHARS = 220
+CONTEXT_CHARS = 150
 _MARKER_RE = re.compile(
     r"(?<![а-яa-z])(?:ст|стать[а-я]*|пп?|пункт[а-я]*|подп|подпункт[а-я]*|ч|част[а-я]*)\.?\s*\d[\d.]*",
     re.IGNORECASE,
 )
+# The resolver keeps the shortest of equally good name prefixes ("ст. 15 УПК"
+# for "ст. 15 УПК РФ"); for display the fragment takes the country suffix too.
+_LAW_TAIL_RE = re.compile(r"\s+(?:РФ|России|Российской\s+Федерации)(?![А-Яа-яЁё])")
 # Codes used to corrupt control items: the reading names another code.
 _CODE_SWAP = {5: 13, 13: 5, 15: 10, 10: 15, 17: 12, 12: 17, 0: 6, 6: 0, 7: 8, 8: 7}
 
@@ -71,27 +76,26 @@ def context(text: str, start: int, end: int, chars: int = CONTEXT_CHARS) -> Tupl
     return before, text[start:end], after
 
 
+def with_law_tail(text: str, end: int) -> int:
+    match = _LAW_TAIL_RE.match(text, end)
+    return match.end() if match else end
+
+
 def _values(values: Sequence[Optional[str]]) -> List[str]:
     return list(dict.fromkeys(v for v in values if v))
 
 
 def claim(links: Sequence[Dict[str, object]], titles: Dict[int, str]) -> str:
-    """Reading of one chain: "Статьи 64, 73, часть/пункт 2 - Уголовный кодекс РФ"."""
+    """Reading of one chain with numbers in the order of the citation and no
+    level names, so it can be compared with the text without knowing the
+    labeling rules: "п. 6 ч. 1 ст. 24.5 КоАП РФ" -> "6 · 1 · ст. 24.5 — КоАП"."""
     arts = _values([l["article"] for l in links])
     pts = _values([l["point_article"] for l in links])
     subs = _values([l["subpoint_article"] for l in links])
-    parts = []
-    if arts:
-        parts.append(("Статья " if len(arts) == 1 else "Статьи ") + ", ".join(arts))
-    else:
-        parts.append("Статья не указана")
-    if pts:
-        parts.append(("часть/пункт " if len(pts) == 1 else "части/пункты ") + ", ".join(pts))
-    if subs:
-        parts.append(("подпункт " if len(subs) == 1 else "подпункты ") + ", ".join(subs))
+    parts = [", ".join(v) for v in (subs, pts) if v]
+    parts.append("ст. " + ", ".join(arts) if arts else "статья не указана")
     law = int(links[0]["law_id"])
-    return ", ".join(parts) + " — " + titles.get(law, f"закон {law}")
-
+    return " · ".join(parts) + " — " + titles.get(law, f"закон {law}")
 
 def group_detected(detected: Sequence[DetectedLink]) -> List[Tuple[int, int, List[Dict[str, object]]]]:
     """One group per chain: (start, end, links)."""
@@ -106,6 +110,7 @@ def doc_items(extractor: Extractor, doc_id: str, text: str, source: str, titles)
     items = []
     covered: List[Tuple[int, int]] = []
     for n, (start, end, links) in enumerate(group_detected(extractor.extract_detailed(text))):
+        end = with_law_tail(text, end)
         covered.append((start, end))
         before, fragment, after = context(text, start, end)
         items.append({
@@ -148,7 +153,7 @@ def control_items(extractor: Extractor, titles, n: int, rng: random.Random) -> L
     rng.shuffle(correct)
     items = []
     for i, (case, start, end, links) in enumerate(correct[:n]):
-        before, fragment, after = context(case["text"], start, end)
+        before, fragment, after = context(case["text"], start, with_law_tail(case["text"], end))
         corrupt = i % 2 == 1
         shown = [dict(l) for l in links]
         if corrupt:
@@ -202,7 +207,8 @@ def build(name: str, docs: int, controls: int, window_chars: int, seed: int) -> 
 
 MIN_CONTROLS = 3
 MIN_CONTROL_ACCURACY = 0.75
-NO_ANSWERS = {"no", "no_law", "no_numbers", "no_ref"}
+_OUT_OF_DICT_RE = re.compile(r"Конституци", re.IGNORECASE)
+NO_ANSWERS = {"no", "no_law", "no_numbers", "no_ref", "other_doc"}
 
 
 def load_votes(folder: Path) -> List[Dict[str, object]]:
@@ -276,7 +282,10 @@ def analyze(items: Dict[str, Dict], votes: List[Dict]) -> Dict[str, object]:
     links_right = sum(len(items[i]["links"]) for i in right)
     links_all = sum(len(items[i]["links"]) for i in verify)
     missed = {i: d for i, d in decisions.items() if items[i]["kind"] == "missed" and d}
-    missed_yes = [i for i, d in missed.items() if d == "yes"]
+    # A reference to an act missing from law_aliases.json (the Constitution
+    # first of all) is not a miss of the extractor under the task rules.
+    outside = [i for i, d in missed.items() if d == "yes" and _OUT_OF_DICT_RE.search(items[i]["after"][:60])]
+    missed_yes = [i for i, d in missed.items() if d == "yes" and i not in outside]
 
     pairs = agree = 0
     for answers in by_item.values():
@@ -294,6 +303,7 @@ def analyze(items: Dict[str, Dict], votes: List[Dict]) -> Dict[str, object]:
         "errors": dict(errors),
         "missed_decided": len(missed),
         "missed_yes": len(missed_yes),
+        "missed_out_of_dictionary": len(outside),
         "relative_recall": len(right) / (len(right) + len(missed_yes)) if right or missed_yes else None,
         "agreement": agree / pairs if pairs else None,
         "pairs": pairs,
@@ -311,7 +321,8 @@ def report(name: str, result: Dict[str, object]) -> str:
         f"- точность по цепочкам: {fmt(result['precision'])} (95% ДИ {lo:.3f}-{hi:.3f}) на {result['verify_decided']} решённых вопросах",
         f"- точность по ссылкам (вес - число ссылок в цепочке): {fmt(result['link_precision'])}",
         f"- ошибки: {result['errors']}",
-        f"- кандидаты на пропуск: {result['missed_yes']} «да» из {result['missed_decided']} решённых",
+        f"- кандидаты на пропуск: {result['missed_yes']} «да» из {result['missed_decided']} решённых"
+        f" (ещё {result['missed_out_of_dictionary']} - акты вне словаря, например Конституция, не считаются)",
         f"- полнота относительно пула кандидатов: {fmt(result['relative_recall'])}",
         "", "| участник | ответов | контрольных | точность контроля | медиана, с | учтён |", "|---|---|---|---|---|---|",
     ]

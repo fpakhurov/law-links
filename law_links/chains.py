@@ -28,6 +28,8 @@ from typing import Dict, List, Optional, Sequence, Tuple
 
 import numpy as np
 
+from law_links.normalize import normalize
+
 TAGS = ["O", "MS", "VS", "MP", "VP", "MD", "VD", "MA", "VA", "X"]
 TOKEN_RE = re.compile(r"\d+(?:\.\d+)*(?:\s*-\s*\d+(?:\.\d+)*)?|[А-Яа-яЁёA-Za-z]+|\S")
 
@@ -98,11 +100,25 @@ def value_text(token: str) -> str:
 
 def decode(tokens: Sequence[Tok], tags: Sequence[str]) -> List[Chain]:
     """Group tagged tokens into chains. A chain ends at an O token or when a
-    new marker follows an article value ("ст. 15, ст. 64" is two chains).
+    new marker follows an article value and starts another chain: another
+    article marker ("ст. 15 ст. 64"), or a lower level followed by its own
+    article ("ч. 6 ст. 15 ч. 2 ст. 64"). A lower level after the article with
+    no article after it belongs to that article ("Статья 20.4 ч. 1 КоАП").
     A chain without an article whose value is an ordinal word is a part of
     a code ("части второй Кодекса"), not a reference, and is dropped."""
     chains: List[Chain] = []
     cur: Optional[dict] = None
+    # article_ahead[i]: an article marker follows position i before the chain
+    # ends. A comma or semicolon followed by a new marker ends the look
+    # ("ст. 12.8 ч. 1, ст. 12.26"); inside a list of values it does not
+    # ("пунктами «а», «б» части 2 статьи 105").
+    next_marker = [False] * (len(tags) + 1)
+    for i in range(len(tags) - 1, -1, -1):
+        next_marker[i] = tags[i].startswith("M") or (tags[i] == "X" and next_marker[i + 1])
+    article_ahead = [False] * (len(tags) + 1)
+    for i in range(len(tags) - 1, -1, -1):
+        separator = tags[i] == "O" or (tags[i] == "X" and tokens[i].text in ",;" and next_marker[i + 1])
+        article_ahead[i] = not separator and (tags[i] == "MA" or article_ahead[i + 1])
 
     def close():
         nonlocal cur
@@ -110,12 +126,13 @@ def decode(tokens: Sequence[Tok], tags: Sequence[str]) -> List[Chain]:
             chains.append(Chain(cur["start"], cur["end"], cur["VA"], cur["VP"], cur["VS"]))
         cur = None
 
-    for tok, tag in zip(tokens, tags):
+    for i, (tok, tag) in enumerate(zip(tokens, tags)):
         if tag == "O":
             close()
             continue
         if tag.startswith("M") and cur is not None and cur["VA"]:
-            close()
+            if tag == "MA" or article_ahead[i]:
+                close()
         if cur is None:
             if tag == "X":
                 continue
@@ -234,5 +251,6 @@ class ChainTagger:
         return cls(ChainHMM.load(path))
 
     def find(self, text: str) -> List[Chain]:
-        tokens = tokenize(text)
+        # the model is trained on normalized text; normalization keeps offsets
+        tokens = tokenize(normalize(text))
         return decode(tokens, self.model.predict([t.text for t in tokens]))

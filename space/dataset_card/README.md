@@ -15,7 +15,10 @@ size_categories:
 
 # Law Links: ответы опроса о юридических ссылках
 
-Ответы «да/нет» на вопросы о ссылках на нормы законов в текстах российских судебных решений: верно ли программа нашла и поняла ссылку («ч. 3 ст. 158 УК РФ» -> статья 158, часть 3, Уголовный кодекс) и есть ли ссылка в фрагментах, которые программа пропустила. Опрос: https://huggingface.co/spaces/fpakhurov/law-links-survey, код и описание методики: https://github.com/fpakhurov/law-links (`docs/SURVEY.md`).
+Ответы «да/нет» на вопросы о ссылках на нормы законов в текстах российских судебных решений: верно ли программа нашла и поняла ссылку («ч. 3 ст. 158 УК РФ» -> статья 158, часть 3, Уголовный кодекс) и есть ли ссылка в фрагментах, которые программа пропустила. - Опрос: [fpakhurov/law-links-survey](https://huggingface.co/spaces/fpakhurov/law-links-survey)
+- Код сервиса, опроса и анализа: [github.com/fpakhurov/law-links](https://github.com/fpakhurov/law-links)
+- Методика: [docs/SURVEY.md](https://github.com/fpakhurov/law-links/blob/master/docs/SURVEY.md), технический отчёт: [REPORT.md](https://github.com/fpakhurov/law-links/blob/master/REPORT.md)
+- Анализ ответов: `python -m annotation.survey analyze survey1 --votes <папка с votes>` (в репозитории)
 
 ## Файлы
 

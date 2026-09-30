@@ -2,6 +2,9 @@
 
 FastAPI-сервис, выделяющий из русского текста юридические ссылки вида `пп. 1 п. 1 ст. 374 НК РФ` и возвращающий их структурой `law_id / article / point_article / subpoint_article`. Условие задания: [docs/TASK.md](docs/TASK.md).
 
+- Опрос для проверки качества на новых текстах: [huggingface.co/spaces/fpakhurov/law-links-survey](https://huggingface.co/spaces/fpakhurov/law-links-survey)
+- Открытый датасет ответов: [huggingface.co/datasets/fpakhurov/law-links-votes](https://huggingface.co/datasets/fpakhurov/law-links-votes)
+
 ## Быстрый старт
 
 ```bash
@@ -80,7 +83,11 @@ make audit                # отчёт о качестве law_aliases.json -> d
 
 ## Разметка и опрос
 
-Основной способ оценки на новых текстах - опрос одногруппников ответами «да/нет» на найденные ссылки и кандидатов на пропуск ([docs/SURVEY.md](docs/SURVEY.md)): приложение в `space/`, вопросы `python -m annotation.survey build`, анализ `python -m annotation.survey analyze`.
+Основной способ оценки на новых текстах - опрос одногруппников ответами «да/нет» на найденные ссылки и кандидатов на пропуск ([docs/SURVEY.md](docs/SURVEY.md)).
+
+- **Опрос**: [fpakhurov/law-links-survey](https://huggingface.co/spaces/fpakhurov/law-links-survey) на Hugging Face Spaces, код в `space/`. Участник придумывает имя и отвечает на вопросы двух видов: верно ли программа поняла найденную ссылку (номера и закон) и есть ли ссылка во фрагменте, который программа пропустила. Каждый 8-й вопрос контрольный, с известным ответом.
+- **Датасет**: [fpakhurov/law-links-votes](https://huggingface.co/datasets/fpakhurov/law-links-votes), CC-BY-4.0. `items/survey1.jsonl` - 403 вопроса по 40 фрагментам судебных решений (273 проверки найденных ссылок, 90 кандидатов на пропуск, 40 контрольных), `votes/*.jsonl` - ответы: вопрос, ответ, имя участника, случайный номер браузера, время. Ответы дописываются во время опроса.
+- **Анализ**: `hf download fpakhurov/law-links-votes --repo-type dataset --local-dir annotation/data/survey/survey1/votes`, затем `python -m annotation.survey analyze survey1 --votes annotation/data/survey/survey1/votes` - точность с доверительным интервалом, типы ошибок, полнота относительно пула кандидатов, согласие участников. Вопросы собираются `python -m annotation.survey build`.
 
 Полные эталоны можно собирать в приложении на Gradio ([docs/ANNOTATION.md](docs/ANNOTATION.md)):
 

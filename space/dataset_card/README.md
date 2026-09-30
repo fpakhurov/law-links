@@ -15,12 +15,15 @@ size_categories:
 
 # Law Links: ответы опроса о юридических ссылках
 
-Ответы «да/нет» на вопросы о ссылках на нормы законов в текстах российских судебных решений: верно ли программа нашла и поняла ссылку («ч. 3 ст. 158 УК РФ» -> статья 158, часть 3, Уголовный кодекс) и есть ли ссылка в фрагментах, которые программа пропустила. Опрос: https://huggingface.co/spaces/fpakhurov/law-links-survey, код и описание методики: https://github.com/fpakhurov/law-links (`docs/SURVEY.md`).
+Ответы «да/нет» на вопросы о ссылках на нормы законов в текстах российских судебных решений: верно ли программа нашла и поняла ссылку («ч. 3 ст. 158 УК РФ» -> статья 158, часть 3, Уголовный кодекс) и есть ли ссылка в фрагментах, которые программа пропустила. - Опрос: [fpakhurov/law-links-survey](https://huggingface.co/spaces/fpakhurov/law-links-survey)
+- Код сервиса, опроса и анализа: [github.com/fpakhurov/law-links](https://github.com/fpakhurov/law-links)
+- Методика: [docs/SURVEY.md](https://github.com/fpakhurov/law-links/blob/master/docs/SURVEY.md), технический отчёт: [REPORT.md](https://github.com/fpakhurov/law-links/blob/master/REPORT.md)
+- Анализ ответов: `python -m annotation.survey analyze survey1 --votes <папка с votes>` (в репозитории)
 
 ## Файлы
 
-- `items/survey1.jsonl` - вопросы. Поля: `item_id`, `kind` (`verify` - проверка найденной ссылки, `missed` - кандидат на пропуск, `control` - вопрос с известным ответом), `doc_id`, `source` (ссылка на решение на sudact.ru и строки), `before` / `fragment` / `after` (контекст, выделенный фрагмент), `claim` (как программа поняла фрагмент: номера в порядке цитирования и закон, `6 · 1 · ст. 24.5 — Кодекс ...`), `links` (ссылки в формате `{law_id, article, point_article, subpoint_article}`, `law_id` по словарю задания), `expected` (ответ для `control`).
-- `votes/votes-*.jsonl` - ответы, дописываются во время опроса. Поля: `vote_id`, `item_id`, `kind`, `answer` (для `verify`/`control`: `yes`, `no_law`, `no_numbers`, `no_ref`, `unsure`; для `missed`: `yes` - ссылка на закон или кодекс, `other_doc` - на другой документ, `no`, `unsure`), `voter` (случайный идентификатор браузера), `name` (придуманное участником имя), `ms` (время на ответ), `time` (UTC).
+- `items/survey1.jsonl` - вопросы. Поля: `item_id`, `kind` (`verify` - проверка найденной ссылки, `missed` - кандидат на пропуск, `control` - вопрос с известным ответом), `doc_id`, `source` (ссылка на решение на sudact.ru и строки), `before` / `fragment` / `after` (контекст, выделенный фрагмент), `claim` (как программа поняла фрагмент, записано как ссылка: `п. 6 ч. 1 ст. 24.5 — КоАП РФ`), `fields` (то же по элементам: `law`, `article`, `lower`), `links` (ссылки в формате `{law_id, article, point_article, subpoint_article}`, `law_id` по словарю задания), `expected` (ответ для `control`).
+- `votes/votes-*.jsonl` - ответы, дописываются во время опроса. Поля: `vote_id`, `item_id`, `kind`, `answer` (для `verify`/`control`: `yes`, `no_law` (неверный закон), `no_article` (неверная статья), `no_part` (неверная часть, пункт или подпункт), `no_ref` (не ссылка), `unsure` (пропуск); в первых ответах вместо `no_article`/`no_part` было общее `no_numbers`; для `missed`: `yes` - ссылка на закон или кодекс, `other_doc` - на другой документ, `no`, `unsure`), `voter` (случайный идентификатор браузера), `name` (придуманное участником имя), `ms` (время на ответ), `time` (UTC).
 
 ## Происхождение и ограничения
 

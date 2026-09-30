@@ -28,6 +28,7 @@ from typing import Dict, List, Optional, Sequence, Tuple
 
 import numpy as np
 
+from law_links.lemmas import edits1, morph
 from law_links.normalize import normalize
 
 TAGS = ["O", "MS", "VS", "MP", "VP", "MD", "VD", "MA", "VA", "X"]
@@ -60,16 +61,86 @@ class Tok:
     end: int
 
 
+# A marker glued to the previous word: "спп. 1", "дляст. 105", "Согласностатье 16".
+# An abbreviation needs a dot and a number after it, a full word a number.
+_GLUED_RE = re.compile(
+    r"([а-я]+?)(ст|ч|пп|п|стать[яиеюй][а-я]{0,2}|част[ьияею][а-я]{0,2}|(?:под)?пункт[а-я]{0,3})",
+    re.IGNORECASE,
+)
+_GLUE_HEADS = {"с", "со", "в", "во", "к", "ко", "по", "на", "из", "от", "и"}
+_AFTER_ABBR_RE = re.compile(r"\.\s*\d")
+_AFTER_WORD_RE = re.compile(r"\s*\d")
+
+
+def _unglue(word: str, text: str, end: int) -> Optional[int]:
+    """Length of the head word if `word` is a word with a marker glued to it."""
+    if len(word) < 2 or not word.isalpha() or _KEEP_RE.match(word.lower()):
+        return None
+    m = _GLUED_RE.fullmatch(word)
+    if not m or (len(m.group(1)) < 3 and m.group(1).lower() not in _GLUE_HEADS):
+        return None
+    after = _AFTER_ABBR_RE if len(m.group(2)) <= 2 else _AFTER_WORD_RE
+    return len(m.group(1)) if after.match(text, end) else None
+
+
 def tokenize(text: str) -> List[Tok]:
-    return [Tok(m.group(), m.start(), m.end()) for m in TOKEN_RE.finditer(text)]
+    tokens = []
+    for m in TOKEN_RE.finditer(text):
+        word, start, end = m.group(), m.start(), m.end()
+        head = _unglue(word, text, end)
+        if head:
+            tokens += [Tok(word[:head], start, start + head), Tok(word[head:], start + head, end)]
+        else:
+            tokens.append(Tok(word, start, end))
+    return tokens
+
+
+_MARKER_FORMS = [
+    stem + ending
+    for stems, endings in (
+        (["стать"], ["я", "и", "е", "ю", "ей", "ям", "ями", "ях"]),
+        (["стат"], ["ей"]),
+        (["част"], ["ь", "и", "ью", "ей", "ям", "ями", "ях"]),
+        (["пункт", "подпункт"], ["", "а", "у", "ом", "е", "ы", "ов", "ам", "ами", "ах"]),
+        (["абзац"], ["", "а", "у", "ем", "е", "ы", "ев", "ам", "ами", "ах"]),
+    )
+    for stem in stems
+    for ending in endings
+]
+_TYPO_TO_MARKER: Dict[str, str] = {}
+
+
+def is_marker(token: str) -> bool:
+    """A level marker word, abbreviation or a marker with a typo."""
+    low = token.lower()
+    return bool(_KEEP_RE.match(low)) or low in _MARKER_FORMS or _marker_typo(low) is not None
+
+
+def _marker_typo(low: str) -> Optional[str]:
+    """The marker form one edit away from an unknown word: "сттаьи" -> "статьи"."""
+    if not _TYPO_TO_MARKER:
+        for form in reversed(_MARKER_FORMS):
+            for typo in edits1(form):
+                _TYPO_TO_MARKER[typo] = form
+    form = _TYPO_TO_MARKER.get(low)
+    if form is None or len(low) < 4 or morph().word_is_known(low):
+        return None
+    return form
 
 
 @lru_cache(maxsize=200_000)
 def shape(token: str) -> str:
-    """Emission class of a token: markers and function words stay as is."""
+    """Emission class of a token: markers and function words stay as is,
+    a marker with a typo is the marker."""
     low = token.lower()
     if _KEEP_RE.match(low) or low in _FUNCTION:
         return low
+    if low == "статей":  # plural genitive, an ordinary word in the synthetic data
+        return "статьях"
+    if low.isalpha() and 4 <= len(low) <= 11:
+        form = _marker_typo(low)
+        if form is not None:
+            return shape(form)
     if _ORD_RE.match(low):
         return "<ORD>"
     if re.fullmatch(r"\d{1,4}", token):
@@ -105,7 +176,22 @@ def decode(tokens: Sequence[Tok], tags: Sequence[str]) -> List[Chain]:
     article ("ч. 6 ст. 15 ч. 2 ст. 64"). A lower level after the article with
     no article after it belongs to that article ("Статья 20.4 ч. 1 КоАП").
     A chain without an article whose value is an ordinal word is a part of
-    a code ("части второй Кодекса"), not a reference, and is dropped."""
+    a code ("части второй Кодекса"), not a reference, and is dropped.
+    Values listed after one marker share the level of the first of them: in
+    "ст. 486, 487., 516" the dot after 487 does not make 516 a subpoint. The
+    marker itself does not set the level: "п." is a point or a subpoint.
+    A chain without a marker word (numbers in a table, "т. 10, л.д. 5") is
+    dropped."""
+    tags = list(tags)
+    level = None
+    for i, tag in enumerate(tags):
+        if tag == "O" or tag.startswith("M"):
+            level = None
+        elif tag.startswith("V"):
+            if level is None:
+                level = tag[1]
+            else:
+                tags[i] = "V" + level
     chains: List[Chain] = []
     cur: Optional[dict] = None
     # article_ahead[i]: an article marker follows position i before the chain
@@ -122,7 +208,7 @@ def decode(tokens: Sequence[Tok], tags: Sequence[str]) -> List[Chain]:
 
     def close():
         nonlocal cur
-        if cur and (cur["VA"] or not cur["ordinal"]) and (cur["VA"] or cur["VP"] or cur["VS"]):
+        if cur and cur["marker"] and (cur["VA"] or not cur["ordinal"]) and (cur["VA"] or cur["VP"] or cur["VS"]):
             chains.append(Chain(cur["start"], cur["end"], cur["VA"], cur["VP"], cur["VS"]))
         cur = None
 
@@ -136,7 +222,11 @@ def decode(tokens: Sequence[Tok], tags: Sequence[str]) -> List[Chain]:
         if cur is None:
             if tag == "X":
                 continue
-            cur = {"start": tok.start, "end": tok.end, "VA": [], "VP": [], "VS": [], "ordinal": False}
+            # "статей 228, 229" is tagged O V V: the marker may precede the chain
+            before = i > 0 and is_marker(tokens[i - 1].text)
+            cur = {"start": tok.start, "end": tok.end, "VA": [], "VP": [], "VS": [], "ordinal": False, "marker": before}
+        if tag.startswith("M") and is_marker(tok.text):
+            cur["marker"] = True
         if tag in ("VA", "VP", "VS"):
             if not tok.text[0].isdigit() and len(tok.text) > 2:
                 cur["ordinal"] = True
@@ -253,4 +343,6 @@ class ChainTagger:
     def find(self, text: str) -> List[Chain]:
         # the model is trained on normalized text; normalization keeps offsets
         tokens = tokenize(normalize(text))
+        # "ст..161": a repeated dot is noise the model has not seen
+        tokens = [t for i, t in enumerate(tokens) if not (t.text == "." and i and tokens[i - 1].text == ".")]
         return decode(tokens, self.model.predict([t.text for t in tokens]))

@@ -12,18 +12,10 @@ from typing import List
 
 import pymorphy3
 
+from law_links.normalize import fold_homoglyphs
+
 TOKEN_RE = re.compile(r"[0-9a-zа-я]+(?:[-.][0-9a-zа-я]+)*", re.IGNORECASE)
 SHORT_ABBR_MAX_LEN = 5
-_LATIN_TO_CYR = str.maketrans("ABCEHKMOPTXaceopxy", "АВСЕНКМОРТХасеорху")
-_HAS_CYR = re.compile(r"[а-яА-Я]")
-_HAS_LAT = re.compile(r"[a-zA-Z]")
-
-
-def fold_homoglyphs(word: str) -> str:
-    """Replace Latin look-alike letters in mixed-script words ("CК" -> "СК")."""
-    if _HAS_CYR.search(word) and _HAS_LAT.search(word):
-        return word.translate(_LATIN_TO_CYR)
-    return word
 
 
 @dataclass(frozen=True)
@@ -41,9 +33,27 @@ def tokenize(text: str) -> List[Token]:
     return [Token(fold_homoglyphs(m.group()), m.start(), m.end()) for m in TOKEN_RE.finditer(text)]
 
 
+@lru_cache(maxsize=1)
+def morph() -> pymorphy3.MorphAnalyzer:
+    """One shared analyzer: the dictionary takes ~15 MB."""
+    return pymorphy3.MorphAnalyzer()
+
+
+def edits1(word: str) -> set:
+    """Strings one deletion, transposition, replacement or insertion away."""
+    letters = "абвгдежзийклмнопрстуфхцчшщъыьэюя"
+    splits = [(word[:i], word[i:]) for i in range(len(word) + 1)]
+    return {
+        *(a + b[1:] for a, b in splits if b),
+        *(a + b[1] + b[0] + b[2:] for a, b in splits if len(b) > 1),
+        *(a + c + b[1:] for a, b in splits if b for c in letters),
+        *(a + c + b for a, b in splits for c in letters),
+    }
+
+
 class Lemmatizer:
     def __init__(self) -> None:
-        self._morph = pymorphy3.MorphAnalyzer()
+        self._morph = morph()
         self._cached = lru_cache(maxsize=200_000)(self._lemma)
 
     def _lemma(self, word: str) -> str:

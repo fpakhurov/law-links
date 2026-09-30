@@ -20,6 +20,7 @@ sentences (research/train_chains.py) and stored in data/chain_hmm.json.
 import json
 import math
 import re
+from functools import lru_cache
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 from pathlib import Path
@@ -61,6 +62,7 @@ def tokenize(text: str) -> List[Tok]:
     return [Tok(m.group(), m.start(), m.end()) for m in TOKEN_RE.finditer(text)]
 
 
+@lru_cache(maxsize=200_000)
 def shape(token: str) -> str:
     """Emission class of a token: markers and function words stay as is."""
     low = token.lower()
@@ -166,12 +168,12 @@ class ChainHMM:
         self.emit_totals = sum(emit.values()) if emit else np.zeros(n)
         self.vocab_size = len(emit) + 1
         self._unseen = np.log(k / (self.emit_totals + k * self.vocab_size))
+        self._log_emit = {
+            s: np.log((c + k) / (self.emit_totals + k * self.vocab_size)) for s, c in emit.items()
+        }
 
     def log_emit(self, token: str) -> np.ndarray:
-        counts = self.emit.get(shape(token))
-        if counts is None:
-            return self._unseen
-        return np.log((counts + self.k) / (self.emit_totals + self.k * self.vocab_size))
+        return self._log_emit.get(shape(token), self._unseen)
 
     def predict(self, tokens: List[str]) -> List[str]:
         if not tokens:

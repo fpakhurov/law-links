@@ -5,7 +5,8 @@ only shows them and stores answers.
 
     verify   a reference the extractor found: the fragment in context and
              its reading ("Статья 158, часть 3 - Уголовный кодекс РФ").
-             Answers: yes | no_law | no_numbers | no_ref | unsure.
+             Answers: yes | no_law | no_article | no_part | no_ref | unsure
+             (no_numbers in early answers: article or part, not told apart).
     missed   a candidate the extractor did not return: a chain without a
              resolved law, or a marker with a number outside any chain.
              Answers: yes | other_doc | no | unsure ("other_doc": a point of
@@ -40,11 +41,12 @@ from collections import Counter
 from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Tuple
 
-from annotation.laws import load_titles
+from annotation.laws import load_short_titles
 from annotation.make_tasks import used_doc_ids
 from annotation.store import DATA_DIR
 from law_links import DEFAULT_ALIASES_PATH, DEFAULT_CHAIN_MODEL_PATH, ROOT
 from law_links.extractor import DetectedLink, Extractor
+from law_links.chains import tokenize as chain_tokenize
 from law_links.normalize import normalize
 from research.corpus import CORPUS_DIR, INDEX_PATH
 from research.sample_test import window
@@ -76,6 +78,23 @@ def context(text: str, start: int, end: int, chars: int = CONTEXT_CHARS) -> Tupl
     return before, text[start:end], after
 
 
+# Whose point a candidate is: a law or another document named right after it
+# (up to the end of the sentence or a closing bracket).
+_DOC_NEAR_RE = re.compile(
+    r"(?i:кодекс|закон|фз|конституц|положени|правил|приказ|постановлени|договор|контракт|регламент|устав"
+    r"|инструкци|соглашени|коап)|(?<![А-Яа-яЁё])[А-ЯЁ]{2,5}(?![А-Яа-яЁё])"
+)
+_CLAUSE_END_RE = re.compile(r"\)|[.;]\s|[.;]$")
+
+
+def names_document(norm: str, end: int, window: int = 80) -> bool:
+    tail = norm[end : end + window]
+    if tail.startswith("."):
+        tail = " " + tail[1:]  # a dot right after the number ("п.4.2.1. Договора") ends nothing
+    stop = _CLAUSE_END_RE.search(tail)
+    return bool(_DOC_NEAR_RE.search(tail[: stop.start()] if stop else tail))
+
+
 def with_law_tail(text: str, end: int) -> int:
     match = _LAW_TAIL_RE.match(text, end)
     return match.end() if match else end
@@ -85,17 +104,62 @@ def _values(values: Sequence[Optional[str]]) -> List[str]:
     return list(dict.fromkeys(v for v in values if v))
 
 
-def claim(links: Sequence[Dict[str, object]], titles: Dict[int, str]) -> str:
-    """Reading of one chain with numbers in the order of the citation and no
-    level names, so it can be compared with the text without knowing the
-    labeling rules: "п. 6 ч. 1 ст. 24.5 КоАП РФ" -> "6 · 1 · ст. 24.5 — КоАП"."""
+def reading(
+    links: Sequence[Dict[str, object]], titles: Dict[int, str], markers: Optional[Dict[str, str]] = None
+) -> Dict[str, str]:
+    """How the extractor read one chain, by element: law, article and the
+    levels below it, labeled with the markers the chain tagger assigned in
+    the text ("п. 6 ч. 1"); a level without a marker gets a neutral label."""
+    labels = {"S": "пп.", "P": "п./ч.", **(markers or {})}
     arts = _values([l["article"] for l in links])
     pts = _values([l["point_article"] for l in links])
     subs = _values([l["subpoint_article"] for l in links])
-    parts = [", ".join(v) for v in (subs, pts) if v]
-    parts.append("ст. " + ", ".join(arts) if arts else "статья не указана")
     law = int(links[0]["law_id"])
-    return " · ".join(parts) + " — " + titles.get(law, f"закон {law}")
+    return {
+        "law": titles.get(law, f"закон {law}"),
+        "article": ", ".join(arts),
+        "lower": " ".join(f"{labels[k]} {', '.join(v)}" for k, v in (("S", subs), ("P", pts)) if v),
+    }
+
+
+def claim(
+    links: Sequence[Dict[str, object]], titles: Dict[int, str], markers: Optional[Dict[str, str]] = None
+) -> str:
+    """Reading written like a citation: "п. 6 ч. 1 ст. 24.5 — КоАП РФ"."""
+    r = reading(links, titles, markers)
+    parts = [r["lower"]] if r["lower"] else []
+    parts.append("ст. " + r["article"] if r["article"] else "статья не указана")
+    return " ".join(parts) + " — " + r["law"]
+
+
+_TAG_LEVEL = {"MS": "S", "MP": "P", "MA": "A"}
+
+
+def _abbrev(marker: str) -> str:
+    low = marker.lower()
+    if low.startswith("подп") or low == "пп":
+        return "пп."
+    if low.startswith(("п", "пункт", "пунт")):
+        return "п."
+    if low.startswith(("ч", "част")):
+        return "ч."
+    return "ст."
+
+
+class LevelMarkers:
+    """Markers of every level in a text, from the chain tagger's tags."""
+
+    def __init__(self, extractor: Extractor, text: str) -> None:
+        self.tokens = chain_tokenize(normalize(text))
+        self.tags = extractor.chains.model.predict([t.text for t in self.tokens]) if self.tokens else []
+
+    def within(self, start: int, end: int) -> Dict[str, str]:
+        found: Dict[str, str] = {}
+        for tok, tag in zip(self.tokens, self.tags):
+            if start <= tok.start < end and tag in _TAG_LEVEL:
+                found.setdefault(_TAG_LEVEL[tag], _abbrev(tok.text))
+        found.pop("A", None)
+        return found
 
 def group_detected(detected: Sequence[DetectedLink]) -> List[Tuple[int, int, List[Dict[str, object]]]]:
     """One group per chain: (start, end, links)."""
@@ -105,18 +169,39 @@ def group_detected(detected: Sequence[DetectedLink]) -> List[Tuple[int, int, Lis
     return [(s, e, links) for (s, e, _), links in groups.items()]
 
 
+_ENUM_TAIL_RE = re.compile(r"(?:[\s,;]|\s(?:и|а также|также|так и|так и по|и по)(?=\s))+$", re.IGNORECASE)
+
+
+def display_span(text: str, start: int, end: int, starts: Sequence[int]) -> int:
+    """End of the highlighted fragment. A chain of an enumeration takes its
+    law from the next chain ("ч. 6 ст. 15, ст.ст. 64 и 73 УК РФ"), so its span
+    runs over that chain; the highlight stops before the next chain instead,
+    otherwise a voter sees numbers of another question. A full span gets the
+    country suffix ("УПК РФ")."""
+    inner = [s for s in starts if start < s < end]
+    if not inner:
+        return with_law_tail(text, end)
+    cut = min(inner)
+    tail = _ENUM_TAIL_RE.search(text[start:cut])
+    return start + tail.start() if tail else cut
+
+
 def doc_items(extractor: Extractor, doc_id: str, text: str, source: str, titles) -> List[Dict[str, object]]:
     norm = normalize(text)
+    markers = LevelMarkers(extractor, text)
     items = []
     covered: List[Tuple[int, int]] = []
-    for n, (start, end, links) in enumerate(group_detected(extractor.extract_detailed(text))):
-        end = with_law_tail(text, end)
+    groups = group_detected(extractor.extract_detailed(text))
+    starts = [g[0] for g in groups]
+    for n, (start, end, links) in enumerate(groups):
+        end = display_span(text, start, end, starts)
         covered.append((start, end))
         before, fragment, after = context(text, start, end)
         items.append({
             "item_id": f"v-{doc_id}-{n}", "kind": "verify", "doc_id": doc_id, "source": source,
             "before": before, "fragment": fragment, "after": after,
-            "claim": claim(links, titles), "links": links, "expected": None,
+            "claim": claim(links, titles, markers.within(start, end)),
+            "fields": reading(links, titles, markers.within(start, end)), "links": links, "expected": None,
         })
 
     def outside(s: int, e: int) -> bool:
@@ -131,6 +216,8 @@ def doc_items(extractor: Extractor, doc_id: str, text: str, source: str, titles)
         covered.append((s, e))
     candidates += [(m.start(), m.end()) for m in _MARKER_RE.finditer(norm) if outside(m.start(), m.end())]
     for n, (start, end) in enumerate(sorted(candidates)):
+        if not names_document(norm, end):
+            continue  # "(часть 4)": no law or document named, not a reference by the task rules
         before, fragment, after = context(text, start, end)
         items.append({
             "item_id": f"m-{doc_id}-{n}", "kind": "missed", "doc_id": doc_id, "source": source,
@@ -146,14 +233,16 @@ def control_items(extractor: Extractor, titles, n: int, rng: random.Random) -> L
     for path in (ROOT / "tests" / "gold.json", ROOT / "tests" / "gold_real.json"):
         for case in load_cases(path):
             gold = Counter(to_key(l) for l in case["links"])
-            for start, end, links in group_detected(extractor.extract_detailed(case["text"])):
+            groups = group_detected(extractor.extract_detailed(case["text"]))
+            starts = [g[0] for g in groups]
+            for start, end, links in groups:
                 pred = Counter(to_key(l) for l in links)
                 if not pred - gold and links[0]["article"]:
-                    correct.append((case, start, end, links))
+                    correct.append((case, start, display_span(case["text"], start, end, starts), links))
     rng.shuffle(correct)
     items = []
     for i, (case, start, end, links) in enumerate(correct[:n]):
-        before, fragment, after = context(case["text"], start, with_law_tail(case["text"], end))
+        before, fragment, after = context(case["text"], start, end)
         corrupt = i % 2 == 1
         shown = [dict(l) for l in links]
         if corrupt:
@@ -171,7 +260,8 @@ def control_items(extractor: Extractor, titles, n: int, rng: random.Random) -> L
             "item_id": f"c-{case['id']}-{start}", "kind": "control", "doc_id": case["id"],
             "source": case.get("source", "tests/" + case["id"]),
             "before": before, "fragment": fragment, "after": after,
-            "claim": claim(shown, titles), "links": shown,
+            "claim": claim(shown, titles, LevelMarkers(extractor, case["text"]).within(start, end)),
+            "fields": reading(shown, titles, LevelMarkers(extractor, case["text"]).within(start, end)), "links": shown,
             "expected": "no" if corrupt else "yes",
         })
     return items
@@ -179,7 +269,7 @@ def control_items(extractor: Extractor, titles, n: int, rng: random.Random) -> L
 
 def build(name: str, docs: int, controls: int, window_chars: int, seed: int) -> Path:
     rng = random.Random(seed)
-    titles = load_titles()
+    titles = load_short_titles()
     extractor = Extractor.from_files(DEFAULT_ALIASES_PATH, DEFAULT_CHAIN_MODEL_PATH)
     used = used_doc_ids()
     records = [json.loads(l) for l in INDEX_PATH.read_text("utf-8").splitlines()]
@@ -208,7 +298,8 @@ def build(name: str, docs: int, controls: int, window_chars: int, seed: int) -> 
 MIN_CONTROLS = 3
 MIN_CONTROL_ACCURACY = 0.75
 _OUT_OF_DICT_RE = re.compile(r"Конституци", re.IGNORECASE)
-NO_ANSWERS = {"no", "no_law", "no_numbers", "no_ref", "other_doc"}
+# no_numbers: early answers, before "wrong article" and "wrong part" were split
+NO_ANSWERS = {"no", "no_law", "no_article", "no_part", "no_numbers", "no_ref", "other_doc"}
 
 
 def load_votes(folder: Path) -> List[Dict[str, object]]:

@@ -46,27 +46,27 @@ VOTES_REPO = os.getenv("VOTES_REPO", "")
 HF_TOKEN = os.getenv("HF_TOKEN", "")
 CONTROL_EVERY = 8
 LEADERBOARD_SIZE = 10
+N_SCREEN = 12  # outputs of screen() without the joke overlay pair
 # A joke from the anekdot.ru informer for websites every JOKE_GAP answers
 JOKE_GAP = tuple(int(x) for x in os.getenv("JOKE_GAP", "12,20").split(","))
 JOKE_INFORMER = "https://www.anekdot.ru/rss/randomu.html"
 _NAME_RE = re.compile(r"^[\w .\-]{2,24}$")
 
-ANSWERS = {
-    "verify": [("yes", "Верно"), ("no_law", "Не тот закон"), ("no_numbers", "Не те номера"),
-               ("no_ref", "Это не ссылка"), ("unsure", "Не понять")],
-    "missed": [("yes", "Да, закон или кодекс"), ("other_doc", "Да, но другой документ"),
-               ("no", "Нет"), ("unsure", "Не понять")],
+# Step 1 is one tap for the usual answer; step 2 (only after "no" for a found
+# reference, "yes" for a missed candidate) asks what exactly, with buttons
+# named by the values on screen.
+STEP1 = {
+    "verify": ("✓ Всё верно", "✗ Есть ошибка"),
+    "missed": ("Да", "Нет"),
 }
 INFO = """
-### ℹ️ Что мы проверяем
+### ℹ️ Что это
 
-Программа ищет в судебных решениях ссылки на статьи законов. Жёлтым выделено то, что она нашла или пропустила.
+Программа ищет в судебных решениях ссылки на статьи законов (`ч. 3 ст. 158 УК РФ`). Вы проверяете её работу.
 
-**Верно ли понято.** Под текстом номера в том же порядке, что в тексте, и закон: `п. 6 ч. 1 ст. 24.5 КоАП РФ` -> `6 · 1 · ст. 24.5 — Кодекс об административных правонарушениях`. «Верно», если закон тот же и все номера совпадают.
-
-**Есть ли ссылка.** «Да, закон или кодекс» - ссылка на статью, часть или пункт закона. «Да, но другой документ» - пункт договора, правил, приказа, постановления. «Нет» - это вообще не ссылка (лист дела, время, номер дома).
-
-Сомневаетесь - жмите «Не понять». Среди вопросов есть проверочные с известным ответом.
+- **Найденная ссылка.** Сравните выделенное с тем, как программа это поняла. Если что-то не так, нажмите «Есть ошибка» и выберите, что именно.
+- **Пропущенная ссылка.** Скажите, есть ли в выделенном ссылка на статью, и если есть, то на закон или на другой документ (договор, правила, приказ).
+- Сомневаетесь - «Пропустить». Среди вопросов есть проверочные с известным ответом.
 
 Ответы публикуются в открытом датасете [fpakhurov/law-links-votes](https://huggingface.co/datasets/fpakhurov/law-links-votes): имя, случайный номер браузера, вопрос, ответ, время.
 """
@@ -85,6 +85,8 @@ CSS = """
 #item { font-size: 1.05em; line-height: 1.7; }
 .answers { flex-wrap: wrap; gap: 8px; }
 .answers button { flex: 1 1 140px; min-height: 48px; }
+.choices { gap: 8px; }
+.choices button { flex: 0 0 auto !important; min-height: 48px; height: auto; }
 .overlay { position: fixed !important; inset: 0; z-index: 1000; background: rgba(0, 0, 0, 0.55);
            display: flex; align-items: center; justify-content: center; padding: 16px; }
 .overlay > .overlay-card { width: 100%; max-width: 480px; max-height: 85vh; overflow-y: auto;
@@ -233,31 +235,65 @@ def card(item_id: Optional[str]) -> str:
         + html.escape(it["after"]).replace("\n", "<br>")
     )
     if it["kind"] == "missed":
-        question = "Программа не посчитала это ссылкой. Это ссылка?"
-        reading = ""
+        question = "<p style='margin-top: 14px;'><b>Здесь есть ссылка на статью?</b></p>"
     else:
-        question = "Программа поняла выделенное так. Закон и все номера совпадают?"
-        reading = (
-            '<div style="margin: 10px 0; padding: 8px 10px; border-left: 3px solid rgb(250, 204, 21);">'
-            f"<b>{html.escape(it['claim'])}</b></div>"
+        question = (
+            "<p style='margin-top: 14px; margin-bottom: 4px;'>Программа поняла выделенное так:</p>"
+            '<div style="margin: 4px 0 10px; padding: 8px 10px; border-left: 3px solid rgb(250, 204, 21);">'
+            f"<b>{html.escape(it['claim'])}</b></div><p><b>Всё верно?</b></p>"
         )
-    return f"<div>{text}</div><p style='margin-top: 14px;'><b>{question}</b></p>{reading}"
+    return f"<div>{text}</div>{question}"
 
 
-def show(state: Dict[str, object]):
-    """Next item for the voter: state, card, progress, answer rows."""
-    item_id = next_item(state["voter"])
-    state["item"] = item_id
-    state["shown_at"] = time.time()
-    kind = ITEMS[item_id]["kind"] if item_id else None
+def step2_choices(item: Dict[str, object]):
+    """Prompt, (answer, label) pairs of the second step."""
+    if item["kind"] == "missed":
+        return "Ссылка на что?", [
+            ("yes", "Статью закона или кодекса"),
+            ("other_doc", "Пункт другого документа: договора, правил, приказа"),
+        ]
+    f = item.get("fields") or {}
+    return "Что неверно?", [
+        ("no_law", f"Закон: {f.get('law') or 'не указан'}"),
+        ("no_article", f"Статья: {f.get('article') or 'не указана'}"),
+        ("no_part", f"Часть, пункт: {f.get('lower') or 'не указаны'}"),
+        ("no_ref", "Это вообще не ссылка"),
+    ]
+
+
+def screen(state: Dict[str, object], step: int, joke: Optional[str] = None):
+    """Values for every component of the question area (see OUTPUTS)."""
+    item_id = state.get("item")
+    item = ITEMS[item_id] if item_id else None
+    state["step"] = step
     count = len(_answered[state["voter"]])
+    yes_label, no_label = STEP1["missed" if item and item["kind"] == "missed" else "verify"]
+    prompt, choices = step2_choices(item) if item else ("", [])
+    state["choices"] = [v for v, _ in choices]
+    choice_updates = [
+        gr.update(value=choices[i][1], visible=True) if i < len(choices) else gr.update(visible=False)
+        for i in range(4)
+    ]
     return (
         state,
         card(item_id),
         f"{html.escape(state.get('name', ''))}, ваших ответов: {count}",
-        gr.update(visible=kind in ("verify", "control")),
-        gr.update(visible=kind == "missed"),
+        gr.update(visible=bool(item) and step == 1),
+        gr.update(visible=bool(item) and step == 2),
+        gr.update(value=yes_label),
+        gr.update(value=no_label),
+        f"**{prompt}**",
+        *choice_updates,
+        gr.update(visible=True) if joke else gr.skip(),
+        joke if joke else gr.skip(),
     )
+
+
+def show(state: Dict[str, object]):
+    """Move to the next item for the voter."""
+    state["item"] = next_item(state["voter"])
+    state["shown_at"] = time.time()
+    return screen(state, 1)
 
 
 def start(stored: Optional[Dict[str, object]]):
@@ -265,18 +301,17 @@ def start(stored: Optional[Dict[str, object]]):
     name = (stored or {}).get("name") or ""
     state = {"voter": voter, "name": name, "item": None, "shown_at": time.time()}
     if name and claim_name(voter, name)[0]:
-        return (*show(state), gr.update(visible=False), "", {"voter": voter, "name": name})
-    return (state, "", "", gr.update(visible=False), gr.update(visible=False),
-            gr.update(visible=True), "", {"voter": voter, "name": ""})
+        return (*show(state)[:N_SCREEN], gr.update(visible=False), "", {"voter": voter, "name": name})
+    return (*screen(state, 1)[:N_SCREEN], gr.update(visible=True), "", {"voter": voter, "name": ""})
 
 
 def set_name(state: Dict[str, object], name: str):
     ok, result = claim_name(state["voter"], name)
     if not ok:
-        return (state, gr.skip(), gr.skip(), gr.skip(), gr.skip(), gr.update(visible=True),
+        return (*[gr.skip()] * N_SCREEN, gr.update(visible=True),
                 f"<p style='color: #d9534f;'>{html.escape(result)}</p>", gr.skip())
     state["name"] = result
-    return (*show(state), gr.update(visible=False), "", {"voter": state["voter"], "name": result})
+    return (*show(state)[:N_SCREEN], gr.update(visible=False), "", {"voter": state["voter"], "name": result})
 
 
 def joke_frame() -> str:
@@ -287,7 +322,9 @@ def joke_frame() -> str:
         "body{margin:0;padding:4px;font:16px/1.5 system-ui,sans-serif;color:#1f2328;background:transparent}"
         "a{color:#b45309}#a_rnd_title{font-size:13px}#a_rnd_next{display:none}"
         "@media (prefers-color-scheme:dark){body{color:#e6e6e6}a{color:#facc15}}"
-        f"</style></head><body><script src='{JOKE_INFORMER}?r={random.randint(1, 10**9)}'></script></body></html>"
+        "#loading{opacity:.6}body:has(#a_rnd) #loading{display:none}"
+        "</style></head><body><div id='loading'>Загружаем анекдот…</div>"
+        f"<script src='{JOKE_INFORMER}?r={random.randint(1, 10**9)}'></script></body></html>"
     )
     return (
         f'<iframe srcdoc="{html.escape(doc, quote=True)}" title="Анекдот" '
@@ -308,13 +345,32 @@ def answer(state: Dict[str, object], value: str):
             "ms": int(1000 * (time.time() - state.get("shown_at", time.time()))),
             "time": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         })
-    shown = show(state)
+    state["item"] = next_item(state["voter"])
+    state["shown_at"] = time.time()
     count = len(_answered[state["voter"]])
     next_joke = state.setdefault("next_joke", count + random.randint(*JOKE_GAP))
     if item_id and count >= next_joke:
         state["next_joke"] = count + random.randint(*JOKE_GAP)
-        return (*shown, gr.update(visible=True), joke_frame())
-    return (*shown, gr.skip(), gr.skip())
+        return screen(state, 1, joke=joke_frame())
+    return screen(state, 1)
+
+
+def _kind(state: Dict[str, object]) -> Optional[str]:
+    item_id = state.get("item")
+    return ITEMS[item_id]["kind"] if item_id else None
+
+
+def on_yes(state):
+    return screen(state, 2) if _kind(state) == "missed" else answer(state, "yes")
+
+
+def on_no(state):
+    return answer(state, "no") if _kind(state) == "missed" else screen(state, 2)
+
+
+def on_choice(state, i: int):
+    choices = state.get("choices") or []
+    return answer(state, choices[i]) if i < len(choices) else screen(state, 2)
 
 
 def build() -> gr.Blocks:
@@ -333,12 +389,15 @@ def build() -> gr.Blocks:
             info_btn = gr.Button("ℹ️", size="sm", scale=0, min_width=44, elem_classes=["icon-btn"])
         progress = gr.Markdown()
         item_html = gr.HTML(elem_id="item")
-        with gr.Row(visible=False, elem_classes=["answers"]) as verify_row:
-            verify_buttons = [(gr.Button(label, variant="primary" if v == "yes" else "secondary"), v)
-                              for v, label in ANSWERS["verify"]]
-        with gr.Row(visible=False, elem_classes=["answers"]) as missed_row:
-            missed_buttons = [(gr.Button(label, variant="primary" if v == "yes" else "secondary"), v)
-                              for v, label in ANSWERS["missed"]]
+        with gr.Row(visible=False, elem_classes=["answers"]) as step1_row:
+            yes_btn = gr.Button("✓ Всё верно", variant="primary")
+            no_btn = gr.Button("✗ Есть ошибка")
+            skip_btn = gr.Button("Пропустить")
+        with gr.Column(visible=False) as step2_col:
+            prompt = gr.Markdown()
+            with gr.Column(elem_classes=["choices"]):
+                choice_btns = [gr.Button("", visible=False) for _ in range(4)]
+            back_btn = gr.Button("← Назад", size="sm")
 
         with gr.Column(visible=False, elem_classes=["overlay"]) as name_modal:
             with gr.Column(elem_classes=["overlay-card"]):
@@ -360,18 +419,24 @@ def build() -> gr.Blocks:
                 board_html = gr.HTML()
                 board_close = gr.Button("Закрыть", variant="primary")
 
-        shown = [state, item_html, progress, verify_row, missed_row]
-        for button, value in verify_buttons + missed_buttons:
-            button.click(lambda s, v=value: answer(s, v), [state], [*shown, joke_modal, joke_html])
+        outputs = [state, item_html, progress, step1_row, step2_col, yes_btn, no_btn, prompt,
+                   *choice_btns, joke_modal, joke_html]
+        yes_btn.click(on_yes, [state], outputs)
+        no_btn.click(on_no, [state], outputs)
+        skip_btn.click(lambda s: answer(s, "unsure"), [state], outputs)
+        back_btn.click(lambda s: screen(s, 1), [state], outputs)
+        for i, btn in enumerate(choice_btns):
+            btn.click(lambda s, i=i: on_choice(s, i), [state], outputs)
+        screen_outputs = outputs[:N_SCREEN]
         for trigger in (name_btn.click, name_box.submit):
-            trigger(set_name, [state, name_box], [*shown, name_modal, name_error, stored])
+            trigger(set_name, [state, name_box], [*screen_outputs, name_modal, name_error, stored])
         info_btn.click(lambda: gr.update(visible=True), None, info_modal)
         info_close.click(lambda: gr.update(visible=False), None, info_modal)
         board_btn.click(lambda s: (leaderboard(s.get("voter")), gr.update(visible=True)), [state],
                         [board_html, board_modal])
         board_close.click(lambda: gr.update(visible=False), None, board_modal)
         joke_close.click(lambda: (gr.update(visible=False), ""), None, [joke_modal, joke_html])
-        app.load(start, [stored], [*shown, name_modal, name_error, stored])
+        app.load(start, [stored], [*screen_outputs, name_modal, name_error, stored])
     return app
 
 

@@ -6,6 +6,7 @@ are told apart; codes use their first alias.
 """
 
 import json
+import re
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -24,6 +25,24 @@ def law_titles(aliases: Dict[str, List[str]]) -> Dict[int, str]:
 
 def load_titles(path: Path = DEFAULT_ALIASES_PATH) -> Dict[int, str]:
     return law_titles(json.loads(Path(path).read_text("utf-8")))
+
+
+_SHORT_RE = re.compile(r"^[А-ЯЁа-яё]{2,6} РФ$")
+
+
+def short_titles(aliases: Dict[str, List[str]]) -> Dict[int, str]:
+    """Short names for quick comparison with the text: "КоАП РФ" for codes
+    that have one, the display title (number and name) for other laws."""
+    full = law_titles(aliases)
+    short = {}
+    for law_id, names in aliases.items():
+        abbrs = sorted((n.strip() for n in names if _SHORT_RE.match(n.strip())), key=len)
+        short[int(law_id)] = abbrs[0] if abbrs else full[int(law_id)]
+    return short
+
+
+def load_short_titles(path: Path = DEFAULT_ALIASES_PATH) -> Dict[int, str]:
+    return short_titles(json.loads(Path(path).read_text("utf-8")))
 
 
 def choice(law_id: int, title: str) -> str:

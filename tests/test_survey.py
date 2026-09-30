@@ -1,6 +1,6 @@
 import random
 
-from annotation.survey import analyze, claim, context, decide, wilson, with_law_tail
+from annotation.survey import LevelMarkers, analyze, claim, context, decide, display_span, names_document, wilson, with_law_tail
 
 
 def test_claim_reading():
@@ -8,10 +8,24 @@ def test_claim_reading():
         {"law_id": 13, "article": "61", "point_article": "1", "subpoint_article": "и"},
         {"law_id": 13, "article": "61", "point_article": "1", "subpoint_article": "к"},
     ]
-    assert claim(links, {13: "УК РФ"}) == "и, к · 1 · ст. 61 — УК РФ"
-    assert claim([{"law_id": 0, "article": None, "point_article": "10", "subpoint_article": None}], {0: "АПК РФ"}) == (
-        "10 · статья не указана — АПК РФ"
+    assert claim(links, {13: "УК РФ"}, {"S": "п.", "P": "ч."}) == "п. и, к ч. 1 ст. 61 — УК РФ"
+    assert claim(links, {13: "УК РФ"}) == "пп. и, к п./ч. 1 ст. 61 — УК РФ"
+    assert claim([{"law_id": 0, "article": None, "point_article": "10", "subpoint_article": None}], {0: "АПК РФ"}, {"P": "п."}) == (
+        "п. 10 статья не указана — АПК РФ"
     )
+
+
+def test_level_markers(extractor):
+    text = "на основании п. 6 ч. 1 ст. 24.5 КоАП РФ"
+    start = text.index("п. 6")
+    assert LevelMarkers(extractor, text).within(start, len(text)) == {"S": "п.", "P": "ч."}
+
+
+def test_names_document():
+    assert names_document("ст. 5 УК РФ", 5)
+    assert names_document("п. 7.1 Договора поставки", 6)
+    assert not names_document("совершены ли они данным лицом (часть 4). Далее", 36)
+    assert names_document("согласно п.4.2.1. Договора оплата", 17)
 
 def test_context_cuts_at_whitespace():
     before, fragment, after = context("один два три ст. 5 УК РФ четыре пять", 13, 24, chars=5)
@@ -67,3 +81,10 @@ def test_with_law_tail():
     assert text[: with_law_tail(text, text.index(" РФ"))].endswith("УПК РФ")
     assert with_law_tail("ст. 15 УПК Российской Федерации.", 10) == len("ст. 15 УПК Российской Федерации")
     assert with_law_tail("ст. 15 УПК РФы", 10) == 10
+
+
+def test_display_span_stops_before_next_chain():
+    text = "с учетом ч. 6 ст. 15, ст.ст. 64 и 73 УК РФ суд"
+    start, nxt = text.index("ч. 6"), text.index("ст.ст.")
+    assert text[start : display_span(text, start, text.index(" суд"), [start, nxt])] == "ч. 6 ст. 15"
+    assert text[nxt : display_span(text, nxt, text.index(" РФ"), [start, nxt])] == "ст.ст. 64 и 73 УК РФ"

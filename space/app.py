@@ -46,6 +46,9 @@ VOTES_REPO = os.getenv("VOTES_REPO", "")
 HF_TOKEN = os.getenv("HF_TOKEN", "")
 CONTROL_EVERY = 8
 LEADERBOARD_SIZE = 10
+# A joke from the anekdot.ru informer for websites every JOKE_GAP answers
+JOKE_GAP = tuple(int(x) for x in os.getenv("JOKE_GAP", "12,20").split(","))
+JOKE_INFORMER = "https://www.anekdot.ru/rss/randomu.html"
 _NAME_RE = re.compile(r"^[\w .\-]{2,24}$")
 
 ANSWERS = {
@@ -276,6 +279,22 @@ def set_name(state: Dict[str, object], name: str):
     return (*show(state), gr.update(visible=False), "", {"voter": state["voter"], "name": result})
 
 
+def joke_frame() -> str:
+    """The anekdot.ru informer as its authors intend it (their script, their
+    attribution link), isolated in an iframe; jokes are not stored here."""
+    doc = (
+        "<!doctype html><html><head><meta charset='utf-8'><base target='_blank'><style>"
+        "body{margin:0;padding:4px;font:16px/1.5 system-ui,sans-serif;color:#1f2328;background:transparent}"
+        "a{color:#b45309}#a_rnd_title{font-size:13px}#a_rnd_next{display:none}"
+        "@media (prefers-color-scheme:dark){body{color:#e6e6e6}a{color:#facc15}}"
+        f"</style></head><body><script src='{JOKE_INFORMER}?r={random.randint(1, 10**9)}'></script></body></html>"
+    )
+    return (
+        f'<iframe srcdoc="{html.escape(doc, quote=True)}" title="Анекдот" '
+        'style="width:100%;height:200px;border:0;background:transparent"></iframe>'
+    )
+
+
 def answer(state: Dict[str, object], value: str):
     item_id = state.get("item")
     if item_id and state.get("name"):
@@ -289,7 +308,13 @@ def answer(state: Dict[str, object], value: str):
             "ms": int(1000 * (time.time() - state.get("shown_at", time.time()))),
             "time": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         })
-    return show(state)
+    shown = show(state)
+    count = len(_answered[state["voter"]])
+    next_joke = state.setdefault("next_joke", count + random.randint(*JOKE_GAP))
+    if item_id and count >= next_joke:
+        state["next_joke"] = count + random.randint(*JOKE_GAP)
+        return (*shown, gr.update(visible=True), joke_frame())
+    return (*shown, gr.skip(), gr.skip())
 
 
 def build() -> gr.Blocks:
@@ -325,6 +350,11 @@ def build() -> gr.Blocks:
             with gr.Column(elem_classes=["overlay-card"]):
                 gr.Markdown(INFO)
                 info_close = gr.Button("Понятно", variant="primary")
+        with gr.Column(visible=False, elem_classes=["overlay"]) as joke_modal:
+            with gr.Column(elem_classes=["overlay-card"]):
+                gr.Markdown("### 😄 Перерыв на анекдот\nСпасибо, что отвечаете! Случайный анекдот с [anekdot.ru](https://www.anekdot.ru/).")
+                joke_html = gr.HTML()
+                joke_close = gr.Button("Дальше", variant="primary")
         with gr.Column(visible=False, elem_classes=["overlay"]) as board_modal:
             with gr.Column(elem_classes=["overlay-card"]):
                 board_html = gr.HTML()
@@ -332,7 +362,7 @@ def build() -> gr.Blocks:
 
         shown = [state, item_html, progress, verify_row, missed_row]
         for button, value in verify_buttons + missed_buttons:
-            button.click(lambda s, v=value: answer(s, v), [state], shown)
+            button.click(lambda s, v=value: answer(s, v), [state], [*shown, joke_modal, joke_html])
         for trigger in (name_btn.click, name_box.submit):
             trigger(set_name, [state, name_box], [*shown, name_modal, name_error, stored])
         info_btn.click(lambda: gr.update(visible=True), None, info_modal)
@@ -340,6 +370,7 @@ def build() -> gr.Blocks:
         board_btn.click(lambda s: (leaderboard(s.get("voter")), gr.update(visible=True)), [state],
                         [board_html, board_modal])
         board_close.click(lambda: gr.update(visible=False), None, board_modal)
+        joke_close.click(lambda: (gr.update(visible=False), ""), None, [joke_modal, joke_html])
         app.load(start, [stored], [*shown, name_modal, name_error, stored])
     return app
 

@@ -124,8 +124,9 @@ def _level(rng, forms, role: str, letters=False, ordinal=False, trailing_dot=Fal
 
 def synth_chain(rng: random.Random) -> List[Tuple[str, str]]:
     shape = rng.choices(
-        ["a", "pa", "spa", "sppa", "p_in_part", "pp_repeat", "pa_multi", "p_only", "s_only_law", "para", "ps_reverse"],
-        weights=[30, 30, 14, 3, 12, 5, 6, 5, 1, 5, 2],
+        ["a", "pa", "spa", "sppa", "p_in_part", "pp_repeat", "pa_multi", "p_only", "s_only_law", "para", "ps_reverse",
+         "article_first"],
+        weights=[30, 30, 14, 3, 12, 5, 6, 5, 1, 5, 2, 6],
     )[0]
     trailing = rng.random() < 0.12
     art = lambda: _level(rng, _ART, "A", trailing_dot=trailing)
@@ -164,6 +165,16 @@ def synth_chain(rng: random.Random) -> List[Tuple[str, str]]:
         para.append((rng.choice(_PARA_ORD) if rng.random() < 0.5 else str(rng.randint(1, 6)), "VD"))
         middle = _level(rng, _PT, "P") + _gap(rng) if rng.random() < 0.5 else []
         return para + _gap(rng) + middle + art()
+    if shape == "article_first":
+        # "Статья 20.4 ч. 1 КоАП", "ст. 12.8 ч. 1", "статья 30.7 часть 1 пункт 3": the article first
+        head = _level(rng, _ART, "A") + _gap(rng)
+        part = _level(rng, {"abbr": _PART_ONLY, "word": _PART_ONLY}, "P", ordinal=rng.random() < 0.2)
+        if rng.random() < 0.3:
+            return head + part + _gap(rng) + _level(rng, {"abbr": _POINT_ONLY, "word": _POINT_ONLY}, "S",
+                                                     letters=rng.random() < 0.4)
+        if rng.random() < 0.3:
+            return head + _level(rng, _PT, "P", letters=rng.random() < 0.2)
+        return head + part
     if shape == "ps_reverse":
         # "п. 2 пп. 2 ст. 54.1": point written before subpoint
         return _level(rng, {"abbr": ["п.", "п"], "word": ["пункта"]}, "P") + _level(rng, _SUB, "S") + _gap(rng) + art()
@@ -223,14 +234,15 @@ def synth_dataset(
         for _ in range(rng.choices([1, 2], weights=[85, 15])[0]):
             chain = synth_chain(rng)
             for text, tag in chain:
-                for tok in tokenize(text):
+                # the tagger sees normalized text: «» become '"'
+                for tok in tokenize(normalize(text)):
                     tokens.append(tok.text)
                     tags.append(tag)
-            for tok in tokenize(rng.choice(_LAWS)):
+            for tok in tokenize(normalize(rng.choice(_LAWS))):
                 tokens.append(tok.text)
                 tags.append("O")
         if rng.random() < neg_rate:
-            for tok in tokenize(_negative(rng)):
+            for tok in tokenize(normalize(_negative(rng))):
                 tokens.append(tok.text)
                 tags.append("O")
         tokens += right

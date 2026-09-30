@@ -8,11 +8,10 @@ def test_claim_reading():
         {"law_id": 13, "article": "61", "point_article": "1", "subpoint_article": "и"},
         {"law_id": 13, "article": "61", "point_article": "1", "subpoint_article": "к"},
     ]
-    assert claim(links, {13: "УК РФ"}) == "Статья 61, часть/пункт 1, подпункты и, к — УК РФ"
+    assert claim(links, {13: "УК РФ"}) == "и, к · 1 · ст. 61 — УК РФ"
     assert claim([{"law_id": 0, "article": None, "point_article": "10", "subpoint_article": None}], {0: "АПК РФ"}) == (
-        "Статья не указана, часть/пункт 10 — АПК РФ"
+        "10 · статья не указана — АПК РФ"
     )
-
 
 def test_context_cuts_at_whitespace():
     before, fragment, after = context("один два три ст. 5 УК РФ четыре пять", 13, 24, chars=5)
@@ -24,6 +23,7 @@ def test_decide():
     assert decide(["yes", "yes", "no_law"]) == "yes"
     assert decide(["no_law", "no_numbers", "no_law", "unsure"]) == "no_law"
     assert decide(["yes", "no"]) is None
+    assert decide(["other_doc", "other_doc", "yes"]) == "other_doc"
 
 
 def test_wilson_bounds():

@@ -62,6 +62,12 @@ class LawResolver:
         self.alias_law_arr = np.array(self.alias_law)
         self.vectorizer = TfidfVectorizer(analyzer="char_wb", ngram_range=ngram_range, sublinear_tf=True)
         self.alias_matrix = self.vectorizer.fit_transform(self.alias_keys)
+        self._alias_t = self.alias_matrix.T.tocsr()  # transposed once, not per call
+        exact: Dict[str, set] = {}
+        for key, law in zip(self.alias_keys, self.alias_law):
+            exact.setdefault(key, set()).add(law)
+        self._exact = {key: tuple(sorted(laws)) for key, laws in exact.items()}
+        self._best: Dict[str, Tuple[float, Tuple[int, ...]]] = {}
 
     @classmethod
     def from_json(cls, path: Path, **kw) -> "LawResolver":
@@ -69,7 +75,21 @@ class LawResolver:
 
     def similarity(self, texts: List[str]) -> np.ndarray:
         """Cosine similarity [text x alias] of lemma strings."""
-        return (self.vectorizer.transform(texts) @ self.alias_matrix.T).toarray()
+        return (self.vectorizer.transform(texts) @ self._alias_t).toarray()
+
+    def best_aliases(self, keys: List[str]) -> List[Tuple[float, Tuple[int, ...]]]:
+        """Top similarity and the laws reaching it, per lemma string; cached,
+        since law names repeat from text to text."""
+        todo = [k for k in dict.fromkeys(keys) if k not in self._best]
+        if todo:
+            sims = self.similarity(todo)
+            if len(self._best) > 200_000:
+                self._best.clear()
+            for key, row in zip(todo, sims):
+                top = float(row.max())
+                laws = tuple(sorted(set(self.alias_law_arr[np.flatnonzero(row >= top - 1e-9)].tolist())))
+                self._best[key] = (top, laws)
+        return [self._best[k] for k in keys]
 
     def prefixes(self, text: str, chain: Chain) -> List[Tuple[int, int, str]]:
         """Prefixes of the chain's right context: (start, end, lemma string)."""
@@ -78,8 +98,9 @@ class LawResolver:
         if stop:
             window = window[: stop.start()]
         tokens = tokenize(window)[: self.max_tokens]
+        lemmas = [self.lemmatizer.key(t) for t in tokens]
         return [
-            (chain.end + tokens[0].start, chain.end + tokens[k - 1].end, self.lemmatizer.text(window[: tokens[k - 1].end]))
+            (chain.end + tokens[0].start, chain.end + tokens[k - 1].end, " ".join(lemmas[:k]))
             for k in range(1, len(tokens) + 1)
         ]
 
@@ -87,14 +108,19 @@ class LawResolver:
         cands = self.prefixes(text, chain)
         if not cands:
             return None
-        sims = self.similarity([c[2] for c in cands])
-        best_c, best_a = np.unravel_index(np.argmax(sims), sims.shape)
-        top = sims[best_c, best_a]
+        # A prefix equal to an alias has similarity 1.0, the maximum: the
+        # shortest such prefix is what the full search would pick.
+        for start, end, key in cands:
+            if key in self._exact:
+                laws = self._exact[key]
+                return LawMention(laws[0], start, end, laws)
+        scored = self.best_aliases([c[2] for c in cands])
+        best_c = max(range(len(cands)), key=lambda i: (scored[i][0], -i))
+        top, laws = scored[best_c]
         if top < self.threshold:
             return None
-        laws = sorted(set(self.alias_law_arr[np.flatnonzero(sims[best_c] >= top - 1e-9)].tolist()))
         start, end, _ = cands[best_c]
-        return LawMention(laws[0], start, end, tuple(laws))
+        return LawMention(laws[0], start, end, laws)
 
     def lookup(self, name: str) -> List[int]:
         """Laws whose alias has exactly the same lemmas as `name`."""

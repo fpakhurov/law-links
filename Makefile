@@ -1,7 +1,7 @@
 IMAGE ?= law-links-service
 CONTAINER ?= law-links-container
 
-.PHONY: install test eval speed audit train-chains run docker-build docker-run docker-stop smoke
+.PHONY: install test eval speed noise audit train-chains run docker-build docker-run docker-stop smoke
 
 install:
 	pip install -r requirements-dev.txt
@@ -14,6 +14,9 @@ eval:
 
 speed:
 	python -m scripts.speed
+
+noise:
+	python -m research.noise
 
 audit:
 	python -m scripts.audit_aliases

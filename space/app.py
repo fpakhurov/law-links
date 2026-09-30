@@ -55,7 +55,7 @@ ANSWERS = {
                ("no", "Нет"), ("unsure", "Не понять")],
 }
 INFO = """
-### Что мы проверяем
+### ℹ️ Что мы проверяем
 
 Программа ищет в судебных решениях ссылки на статьи законов. Жёлтым выделено то, что она нашла или пропустила.
 
@@ -76,6 +76,8 @@ CSS = """
 .gradio-container { max-width: 760px !important; margin: 0 auto; }
 #topbar { align-items: center; flex-wrap: nowrap; gap: 8px; }
 #topbar button { flex: 0 0 auto; min-width: 44px; }
+.icon-btn { font-size: 1.35em !important; width: 44px; height: 44px; padding: 0 !important;
+            border-radius: 50% !important; }
 #title { flex: 1 1 auto; text-align: center; font-weight: 600; font-size: 1.05em; }
 #item { font-size: 1.05em; line-height: 1.7; }
 .answers { flex-wrap: wrap; gap: 8px; }
@@ -210,9 +212,9 @@ def leaderboard(voter: Optional[str]) -> str:
     mine = next(((p, c) for p, (c, _, v) in enumerate(counts, 1) if v == voter), None)
     footer = f"<p>Ваше место: {mine[0]}, ответов: {mine[1]}</p>" if mine else "<p>Вы ещё не отвечали.</p>"
     if not rows:
-        return "<h3>Рейтинг</h3><p>Пока никто не ответил.</p>"
+        return "<h3>📊 Рейтинг</h3><p>Пока никто не ответил.</p>"
     return (
-        "<h3>Рейтинг</h3><table style='width:100%'><tr><th>#</th><th>Имя</th><th>Ответов</th></tr>"
+        "<h3>📊 Рейтинг</h3><table style='width:100%'><tr><th>#</th><th>Имя</th><th>Ответов</th></tr>"
         + "".join(rows) + "</table>" + footer
     )
 
@@ -301,9 +303,9 @@ def build() -> gr.Blocks:
         )
         state = gr.State({})
         with gr.Row(elem_id="topbar"):
-            board_btn = gr.Button("Рейтинг", size="sm", scale=0, min_width=44)
-            gr.HTML("<div>Проверка юридических ссылок</div>", elem_id="title")
-            info_btn = gr.Button("i", size="sm", scale=0, min_width=44)
+            board_btn = gr.Button("📊", size="sm", scale=0, min_width=44, elem_classes=["icon-btn"])
+            gr.HTML("<div>⚖️ Проверка юридических ссылок</div>", elem_id="title")
+            info_btn = gr.Button("ℹ️", size="sm", scale=0, min_width=44, elem_classes=["icon-btn"])
         progress = gr.Markdown()
         item_html = gr.HTML(elem_id="item")
         with gr.Row(visible=False, elem_classes=["answers"]) as verify_row:

@@ -107,6 +107,11 @@ def load_items() -> Dict[str, Dict[str, object]]:
 ITEMS = load_items()
 REGULAR = [i for i, it in ITEMS.items() if it["kind"] != "control"]
 CONTROLS = [i for i, it in ITEMS.items() if it["kind"] == "control"]
+# Packs in file order; the newest pack is asked first, until every item of
+# it has TARGET_VOTES votes (survey1 items have no "pack" field).
+_PACKS = list(dict.fromkeys(it.get("pack", "survey1") for it in ITEMS.values()))
+_PACK_RANK = {i: _PACKS.index(it.get("pack", "survey1")) for i, it in ITEMS.items()}
+TARGET_VOTES = 2
 
 _lock = threading.Lock()
 _votes_per_item: Counter = Counter()
@@ -200,8 +205,12 @@ def next_item(voter: str) -> Optional[str]:
         left = [i for i in REGULAR if i not in done]
         if not left:
             return None
-        fewest = min(_votes_per_item[i] for i in left)
-        return random.choice([i for i in left if _votes_per_item[i] == fewest])
+        def priority(i: str) -> Tuple[bool, int, int]:
+            votes = _votes_per_item[i]
+            return votes >= TARGET_VOTES, -_PACK_RANK[i], votes
+
+        best = min(priority(i) for i in left)
+        return random.choice([i for i in left if priority(i) == best])
 
 
 def leaderboard(voter: Optional[str]) -> str:

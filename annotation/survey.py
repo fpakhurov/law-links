@@ -20,7 +20,8 @@ only shows them and stores answers.
 Usage:
     python -m annotation.survey build survey1 --docs 40 --controls 40
     python -m annotation.survey build survey2 --docs 40 --controls 0 --seed 20261003
-    python -m annotation.survey space survey1 survey2   # items of the packs into space/
+    python -m annotation.survey build survey3 --docs 50 --controls 0 --seed 20261004 --corpus ner
+    python -m annotation.survey space survey1 survey2 survey3   # items of the packs into space/
     python -m annotation.survey analyze survey1 --votes path/to/votes
 
 Analysis: voters are kept if they answered at least MIN_CONTROLS control
@@ -36,6 +37,7 @@ import itertools
 import json
 import random
 import re
+import subprocess
 import sys
 from collections import Counter
 from pathlib import Path
@@ -48,6 +50,7 @@ from law_links import DEFAULT_ALIASES_PATH, DEFAULT_CHAIN_MODEL_PATH, ROOT
 from law_links.extractor import DetectedLink, Extractor
 from law_links.normalize import normalize
 from research.corpus import CORPUS_DIR, INDEX_PATH
+from research.ner_corpus import NER_DIR, NER_INDEX_PATH
 from research.sample_test import window
 from scripts.eval import load_cases, to_key
 
@@ -297,24 +300,39 @@ def control_pool() -> Dict[str, Dict]:
     return items
 
 
-def build(name: str, docs: int, controls: int, window_chars: int, seed: int) -> Path:
+CORPORA = {
+    "sudact": (INDEX_PATH, CORPUS_DIR),  # research.corpus
+    "ner": (NER_INDEX_PATH, NER_DIR),  # research.ner_corpus
+}
+
+
+def model_version() -> str:
+    """The latest release tag: items record which model built them."""
+    out = subprocess.run(["git", "describe", "--tags", "--abbrev=0"], cwd=ROOT, capture_output=True, text=True)
+    return out.stdout.strip() or "unknown"
+
+
+def build(name: str, docs: int, controls: int, window_chars: int, seed: int, corpus: str = "sudact") -> Path:
     rng = random.Random(seed)
     titles = load_short_titles()
     extractor = Extractor.from_files(DEFAULT_ALIASES_PATH, DEFAULT_CHAIN_MODEL_PATH)
     used = used_doc_ids() | survey_doc_ids()
-    records = [json.loads(l) for l in INDEX_PATH.read_text("utf-8").splitlines()]
+    index_path, corpus_dir = CORPORA[corpus]
+    records = [json.loads(l) for l in index_path.read_text("utf-8").splitlines()]
     pool = sorted((r for r in records if r["id"] not in used), key=lambda r: r["id"])
     picked = rng.sample(pool, min(docs, len(pool)))
     items: List[Dict[str, object]] = []
     for r in picked:
-        lines = (CORPUS_DIR / f"{r['id']}.txt").read_text("utf-8").splitlines()
+        lines = (corpus_dir / f"{r['id']}.txt").read_text("utf-8").splitlines()
         start, stop = window(lines, rng, window_chars)
         text = "\n".join(lines[start:stop])
         source = f"{r['url']} (строки {start + 1}-{stop})"
         items += doc_items(extractor, r["id"], text, source, titles)
     items += control_items(extractor, titles, controls, rng)
+    version = model_version()
     for item in items:
         item["pack"] = name
+        item["version"] = version
     out_dir = SURVEY_DIR / name
     out_dir.mkdir(parents=True, exist_ok=True)
     path = out_dir / "items.jsonl"
@@ -466,6 +484,7 @@ def main() -> int:
     b.add_argument("--controls", type=int, default=40)
     b.add_argument("--window", type=int, default=6000)
     b.add_argument("--seed", type=int, default=20261002)
+    b.add_argument("--corpus", choices=sorted(CORPORA), default="sudact")
     sp = sub.add_parser("space")
     sp.add_argument("names", nargs="+")
     an = sub.add_parser("analyze")
@@ -473,7 +492,7 @@ def main() -> int:
     an.add_argument("--votes", type=Path, required=True)
     args = parser.parse_args()
     if args.cmd == "build":
-        build(args.name, args.docs, args.controls, args.window, args.seed)
+        build(args.name, args.docs, args.controls, args.window, args.seed, args.corpus)
     elif args.cmd == "space":
         target = ROOT / "space" / "items.jsonl"
         lines = [line for n in args.names for line in (SURVEY_DIR / n / "items.jsonl").read_text("utf-8").splitlines()]

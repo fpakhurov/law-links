@@ -96,7 +96,7 @@ make audit                # отчёт о качестве law_aliases.json -> d
 Основной способ оценки на новых текстах - опрос одногруппников ответами «да/нет» на найденные ссылки и кандидатов на пропуск ([docs/SURVEY.md](docs/SURVEY.md)).
 
 - **Опрос**: [fpakhurov/law-links-survey](https://huggingface.co/spaces/fpakhurov/law-links-survey) на Hugging Face Spaces, код в `space/`. Участник придумывает имя и за одно-два нажатия отвечает на вопросы двух видов: верно ли программа поняла найденную ссылку (и если нет, что неверно: закон, статья или часть/пункт) и есть ли ссылка во фрагменте, который программа пропустила. Каждый 8-й вопрос контрольный, с известным ответом.
-- **Датасет**: [fpakhurov/law-links-votes](https://huggingface.co/datasets/fpakhurov/law-links-votes), CC-BY-4.0. `items/survey1.jsonl` - 359 вопросов по 40 фрагментам судебных решений (273 проверки найденных ссылок, 46 кандидатов на пропуск, 40 контрольных), собранных версией `v1.0.1`; `items/survey2.jsonl` - 384 вопроса по 40 новым фрагментам (320 проверок, 64 кандидата), собранных версией `v1.2.1`, контрольные общие с survey1; `votes/*.jsonl` - ответы: вопрос, ответ, имя участника, случайный номер браузера, время. Ответы дописываются во время опроса.
+- **Датасет**: [fpakhurov/law-links-votes](https://huggingface.co/datasets/fpakhurov/law-links-votes), CC-BY-4.0. `items/survey1.jsonl` - 359 вопросов по 40 фрагментам судебных решений (273 проверки найденных ссылок, 46 кандидатов на пропуск, 40 контрольных), собранных версией `v1.0.1`; `items/survey2.jsonl` - 384 вопроса по 40 новым фрагментам (320 проверок, 64 кандидата), `items/survey3.jsonl` - 444 вопроса по 50 решениям мировых судей 2013 года из открытого датасета [russian-legal-ner](https://huggingface.co/datasets/TryDotAtwo/russian-legal-ner) (381 проверка, 63 кандидата, имена заменены на `ФИО`), оба собраны версией `v1.2.1`, контрольные общие с survey1; `votes/*.jsonl` - ответы: вопрос, ответ, имя участника, случайный номер браузера, время. Ответы дописываются во время опроса.
 - **Анализ**: `hf download fpakhurov/law-links-votes --repo-type dataset --local-dir annotation/data/survey/survey1/votes`, затем `python -m annotation.survey analyze survey1 --votes annotation/data/survey/survey1/votes` (и так же `survey2`) - точность с доверительным интервалом, типы ошибок, полнота относительно пула кандидатов, согласие участников. Вопросы собираются `python -m annotation.survey build`.
 
 Полные эталоны можно собирать в приложении на Gradio ([docs/ANNOTATION.md](docs/ANNOTATION.md)):
@@ -128,6 +128,7 @@ tests/                  pytest, эталоны gold.json, gold_real.json, gold_t
 scripts/eval.py         метрики на эталоне
 scripts/speed.py        скорость против лимита проверки
 research/noise.py       шумовой бенч: dev с опечатками, склейками, латиницей
+research/ner_corpus.py  тексты из датасета russian-legal-ner для опроса, с заменой имён
 scripts/audit_aliases.py  аудит базы законов
 research/               корпус, выбор test, обучение HMM, бенчмарк (не входит в образ)
 annotation/             разметка и опрос: пакеты задач, вопросы опроса, анализ ответов (не входит в образ)

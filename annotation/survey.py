@@ -19,7 +19,8 @@ only shows them and stores answers.
 
 Usage:
     python -m annotation.survey build survey1 --docs 40 --controls 40
-    python -m annotation.survey space survey1      # copy items into space/
+    python -m annotation.survey build survey2 --docs 40 --controls 0 --seed 20261003
+    python -m annotation.survey space survey1 survey2   # items of the packs into space/
     python -m annotation.survey analyze survey1 --votes path/to/votes
 
 Analysis: voters are kept if they answered at least MIN_CONTROLS control
@@ -35,7 +36,6 @@ import itertools
 import json
 import random
 import re
-import shutil
 import sys
 from collections import Counter
 from pathlib import Path
@@ -46,7 +46,6 @@ from annotation.make_tasks import used_doc_ids
 from annotation.store import DATA_DIR
 from law_links import DEFAULT_ALIASES_PATH, DEFAULT_CHAIN_MODEL_PATH, ROOT
 from law_links.extractor import DetectedLink, Extractor
-from law_links.chains import tokenize as chain_tokenize
 from law_links.normalize import normalize
 from research.corpus import CORPUS_DIR, INDEX_PATH
 from research.sample_test import window
@@ -132,7 +131,7 @@ def claim(
     return " ".join(parts) + " — " + r["law"]
 
 
-_TAG_LEVEL = {"MS": "S", "MP": "P", "MA": "A"}
+_TAG_LEVEL = {"VS": "S", "VP": "P", "VD": "D"}
 
 
 def _abbrev(marker: str) -> str:
@@ -150,15 +149,27 @@ class LevelMarkers:
     """Markers of every level in a text, from the chain tagger's tags."""
 
     def __init__(self, extractor: Extractor, text: str) -> None:
-        self.tokens = chain_tokenize(normalize(text))
-        self.tags = extractor.chains.model.predict([t.text for t in self.tokens]) if self.tokens else []
+        self.tokens, self.tags = extractor.chains.tagged(text)
 
     def within(self, start: int, end: int) -> Dict[str, str]:
+        # a level is labeled by the marker before its first value: the tag of
+        # "п." itself does not tell a point from a subpoint
         found: Dict[str, str] = {}
+        marker = None
         for tok, tag in zip(self.tokens, self.tags):
-            if start <= tok.start < end and tag in _TAG_LEVEL:
-                found.setdefault(_TAG_LEVEL[tag], _abbrev(tok.text))
-        found.pop("A", None)
+            if not start <= tok.start < end:
+                continue
+            if tag.startswith("M"):
+                marker = tok.text
+            elif tag in _TAG_LEVEL and marker:
+                found.setdefault(_TAG_LEVEL[tag], _abbrev(marker))
+        # a dropped part without a subpoint is kept by the decoder, the
+        # levels move down: "пунктом 2 части 1" reads "п. 2 ч. 1"
+        part = found.pop("D", None)
+        if part == "ч." and "S" not in found:
+            if "P" in found:
+                found["S"] = found["P"]
+            found["P"] = part
         return found
 
 def group_detected(detected: Sequence[DetectedLink]) -> List[Tuple[int, int, List[Dict[str, object]]]]:
@@ -267,11 +278,30 @@ def control_items(extractor: Extractor, titles, n: int, rng: random.Random) -> L
     return items
 
 
+def survey_doc_ids() -> set:
+    """Documents already shown in a survey pack."""
+    used = set()
+    for path in SURVEY_DIR.glob("*/docs.json"):
+        used.update(json.loads(path.read_text("utf-8")))
+    return used
+
+
+def control_pool() -> Dict[str, Dict]:
+    """Control items of every pack: the app mixes packs, a voter is screened
+    by all controls they answered."""
+    items = {}
+    for path in sorted(SURVEY_DIR.glob("*/items.jsonl")):
+        for item in map(json.loads, path.read_text("utf-8").splitlines()):
+            if item["kind"] == "control":
+                items[item["item_id"]] = item
+    return items
+
+
 def build(name: str, docs: int, controls: int, window_chars: int, seed: int) -> Path:
     rng = random.Random(seed)
     titles = load_short_titles()
     extractor = Extractor.from_files(DEFAULT_ALIASES_PATH, DEFAULT_CHAIN_MODEL_PATH)
-    used = used_doc_ids()
+    used = used_doc_ids() | survey_doc_ids()
     records = [json.loads(l) for l in INDEX_PATH.read_text("utf-8").splitlines()]
     pool = sorted((r for r in records if r["id"] not in used), key=lambda r: r["id"])
     picked = rng.sample(pool, min(docs, len(pool)))
@@ -283,6 +313,8 @@ def build(name: str, docs: int, controls: int, window_chars: int, seed: int) -> 
         source = f"{r['url']} (строки {start + 1}-{stop})"
         items += doc_items(extractor, r["id"], text, source, titles)
     items += control_items(extractor, titles, controls, rng)
+    for item in items:
+        item["pack"] = name
     out_dir = SURVEY_DIR / name
     out_dir.mkdir(parents=True, exist_ok=True)
     path = out_dir / "items.jsonl"
@@ -435,7 +467,7 @@ def main() -> int:
     b.add_argument("--window", type=int, default=6000)
     b.add_argument("--seed", type=int, default=20261002)
     sp = sub.add_parser("space")
-    sp.add_argument("name")
+    sp.add_argument("names", nargs="+")
     an = sub.add_parser("analyze")
     an.add_argument("name")
     an.add_argument("--votes", type=Path, required=True)
@@ -444,14 +476,17 @@ def main() -> int:
         build(args.name, args.docs, args.controls, args.window, args.seed)
     elif args.cmd == "space":
         target = ROOT / "space" / "items.jsonl"
-        shutil.copyfile(SURVEY_DIR / args.name / "items.jsonl", target)
-        print(f"copied to {target}")
+        lines = [line for n in args.names for line in (SURVEY_DIR / n / "items.jsonl").read_text("utf-8").splitlines()]
+        ids = [json.loads(line)["item_id"] for line in lines]
+        assert len(ids) == len(set(ids)), "item ids repeat across packs"
+        target.write_text("\n".join(lines) + "\n", "utf-8")
+        print(f"{len(lines)} items from {', '.join(args.names)} -> {target}")
     elif args.cmd == "analyze":
         survey_dir = SURVEY_DIR / args.name
-        items = {
-            i["item_id"]: i
-            for i in map(json.loads, (survey_dir / "items.jsonl").read_text("utf-8").splitlines())
-        }
+        items = control_pool()
+        items.update(
+            (i["item_id"], i) for i in map(json.loads, (survey_dir / "items.jsonl").read_text("utf-8").splitlines())
+        )
         result = analyze(items, load_votes(args.votes))
         text = report(args.name, result)
         (survey_dir / "report.md").write_text(text, "utf-8")

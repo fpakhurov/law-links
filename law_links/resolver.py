@@ -7,7 +7,8 @@ from law_aliases.json is lemmatized and embedded as TF-IDF over character
 the law if it is above `threshold`. Character n-grams tolerate inflection
 left by the lemmatizer, typos, "КоАП" without "РФ", "Закона N 27-ФЗ" and
 old titles of a law; a date or number between the chain and the name is
-just a longer prefix.
+just a longer prefix. A word pymorphy does not know that is one edit away
+from a form of an alias word is corrected first ("Трудовго" -> "Трудового").
 """
 
 import json
@@ -20,7 +21,7 @@ import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 from law_links.chains import Chain
-from law_links.lemmas import Lemmatizer, tokenize
+from law_links.lemmas import Lemmatizer, Token, edits1, morph, tokenize
 from law_links.normalize import normalize
 
 # The right context stops at a sentence end, a semicolon or the next chain.
@@ -68,6 +69,11 @@ class LawResolver:
             exact.setdefault(key, set()).add(law)
         self._exact = {key: tuple(sorted(laws)) for key, laws in exact.items()}
         self._best: Dict[str, Tuple[float, Tuple[int, ...]]] = {}
+        self._forms = set()
+        for name in {t.text.lower() for names in aliases.values() for n in names for t in tokenize(normalize(n))}:
+            if name.isalpha() and len(name) >= 4:
+                self._forms.update(f.word for f in morph().parse(name)[0].lexeme)
+        self._fixed: Dict[str, str] = {}
 
     @classmethod
     def from_json(cls, path: Path, **kw) -> "LawResolver":
@@ -97,12 +103,28 @@ class LawResolver:
         stop = _STOP_RE.search(window)
         if stop:
             window = window[: stop.start()]
-        tokens = tokenize(window)[: self.max_tokens]
+        tokens = [Token(self.spell(t.text), t.start, t.end) for t in tokenize(window)[: self.max_tokens]]
         lemmas = [self.lemmatizer.key(t) for t in tokens]
         return [
             (chain.end + tokens[0].start, chain.end + tokens[k - 1].end, " ".join(lemmas[:k]))
             for k in range(1, len(tokens) + 1)
         ]
+
+    def spell(self, word: str) -> str:
+        """The alias word form one edit away from an unknown word, or the word."""
+        if len(word) < 5 or not word.isalpha():
+            return word
+        if word not in self._fixed:
+            low = word.lower()
+            fixed = word
+            if low not in self._forms and not morph().word_is_known(low):
+                cands = sorted(edits1(low) & self._forms)
+                if cands:
+                    fixed = cands[0].upper() if word.isupper() else cands[0].capitalize() if word[0].isupper() else cands[0]
+            if len(self._fixed) > 200_000:
+                self._fixed.clear()
+            self._fixed[word] = fixed
+        return self._fixed[word]
 
     def resolve(self, text: str, chain: Chain) -> Optional[LawMention]:
         cands = self.prefixes(text, chain)

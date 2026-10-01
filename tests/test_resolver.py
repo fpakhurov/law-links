@@ -7,6 +7,10 @@ def test_normalize_preserves_length():
     assert len(normalize(text)) == len(text)
 
 
+def test_normalize_folds_homoglyphs_in_mixed_words():
+    assert normalize("cт. 5 УK PФ, Latin") == "ст. 5 УК РФ, Latin"
+
+
 def test_lookup_nominative(resolver):
     assert resolver.lookup("Налоговый кодекс РФ") == [15]
 
@@ -36,3 +40,8 @@ def test_not_a_law(resolver):
 
 def test_stops_at_sentence_end(resolver):
     assert resolve(resolver, " настоящего решения. НК РФ") is None
+
+
+def test_typos_in_law_name(resolver):
+    assert resolve(resolver, " Трудовго коедкса Российской Федерации") == 10
+    assert resolver.spell("часто") == "часто"  # a known word is never corrected

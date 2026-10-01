@@ -107,10 +107,15 @@ def load_items() -> Dict[str, Dict[str, object]]:
 ITEMS = load_items()
 REGULAR = [i for i, it in ITEMS.items() if it["kind"] != "control"]
 CONTROLS = [i for i, it in ITEMS.items() if it["kind"] == "control"]
-# Packs in file order; the newest pack is asked first, until every item of
-# it has TARGET_VOTES votes (survey1 items have no "pack" field).
-_PACKS = list(dict.fromkeys(it.get("pack", "survey1") for it in ITEMS.values()))
-_PACK_RANK = {i: _PACKS.index(it.get("pack", "survey1")) for i, it in ITEMS.items()}
+# Items built by the newest model version are asked first, until each has
+# TARGET_VOTES votes; packs of one version share the queue (survey1 items,
+# built by v1.0.1, have no "version" field).
+def _version_key(version: str) -> Tuple[int, ...]:
+    return tuple(int(x) for x in re.findall(r"\d+", version))
+
+
+_VERSIONS = sorted({it.get("version", "v1.0.1") for it in ITEMS.values()}, key=_version_key)
+_VERSION_RANK = {i: _VERSIONS.index(it.get("version", "v1.0.1")) for i, it in ITEMS.items()}
 TARGET_VOTES = 2
 
 _lock = threading.Lock()
@@ -207,7 +212,7 @@ def next_item(voter: str) -> Optional[str]:
             return None
         def priority(i: str) -> Tuple[bool, int, int]:
             votes = _votes_per_item[i]
-            return votes >= TARGET_VOTES, -_PACK_RANK[i], votes
+            return votes >= TARGET_VOTES, -_VERSION_RANK[i], votes
 
         best = min(priority(i) for i in left)
         return random.choice([i for i in left if priority(i) == best])

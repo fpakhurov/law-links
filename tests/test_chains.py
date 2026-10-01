@@ -45,12 +45,40 @@ def test_chain(chains, text, expected):
         "характеризуется удовлетворительно (л.д. 55-61), что",
         "по адресу: ст. Отрадная, ул. Широкая",
         "по правилам соответствующей главы части второй Кодекса",
+        # no marker word: numbers of a table, volume and sheet of a case file
+        "5 264 687,74 01.01.2024 28.07.2024 210 16 5 264 687,74",
+        "(т. 10, л.д. 100-111) - материалы",
     ],
 )
 def test_no_chain(chains, text):
     assert chains.find(text) == []
 
 
+@pytest.mark.parametrize(
+    "text, expected",
+    [
+        # glued words
+        ("В соответствии спп. 1 п. 1 ст. 374 НК РФ", (["374"], ["1"], ["1"])),
+        ("положенийч. 6ст. 15 УК РФ", (["15"], ["6"], [])),
+        ("Согласностатье 16 Закона", (["16"], [], [])),
+        # Latin look-alike letters
+        ("согласно cт. 30 ГК РФ", (["30"], [], [])),
+        # typos in markers
+        ("пункт 1 сттаьи 114 НК РФ", (["114"], ["1"], [])),
+        ("по пбнкту 1 чсти 1 статьи 81 ТК РФ", (["81"], ["1"], ["1"])),
+        # dots
+        ("на основании ст. ст. 8, 9, 486, 487., 516., 1102 ГК РФ", (["8", "9", "486", "487", "516", "1102"], [], [])),
+        ("установленные ч. 2.3. ст..161 ЖК РФ", (["161"], ["2.3"], [])),
+        # the marker right before the chain is tagged O
+        ("для целей статей 228, 228.1 УК РФ", (["228", "228.1"], [], [])),
+    ],
+)
+def test_noisy_chain(chains, text, expected):
+    assert chain(chains, text) == expected
+
+
+def test_glued_split_needs_a_number():
+    assert [t.text for t in tokenize("текст песни, участи 5")] == ["текст", "песни", ",", "участи", "5"]
 
 
 def test_value_text():

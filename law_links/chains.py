@@ -208,6 +208,10 @@ def decode(tokens: Sequence[Tok], tags: Sequence[str]) -> List[Chain]:
 
     def close():
         nonlocal cur
+        if cur and cur["VD"] and not cur["VS"]:
+            # a part is dropped only above a point and a subpoint: "пунктом 2
+            # части 1 статьи 5" is point 2 of part 1, "частью второй статьи 96" part 2
+            cur["VS"], cur["VP"] = cur["VP"], cur["VD"]
         if cur and cur["marker"] and (cur["VA"] or not cur["ordinal"]) and (cur["VA"] or cur["VP"] or cur["VS"]):
             chains.append(Chain(cur["start"], cur["end"], cur["VA"], cur["VP"], cur["VS"]))
         cur = None
@@ -224,9 +228,14 @@ def decode(tokens: Sequence[Tok], tags: Sequence[str]) -> List[Chain]:
                 continue
             # "статей 228, 229" is tagged O V V: the marker may precede the chain
             before = i > 0 and is_marker(tokens[i - 1].text)
-            cur = {"start": tok.start, "end": tok.end, "VA": [], "VP": [], "VS": [], "ordinal": False, "marker": before}
+            cur = {"start": tok.start, "end": tok.end, "VA": [], "VP": [], "VS": [], "VD": [], "ordinal": False,
+                   "marker": before, "part": False}
         if tag.startswith("M") and is_marker(tok.text):
             cur["marker"] = True
+        if tag == "MD":
+            cur["part"] = tok.text.lower().startswith("ч")
+        if tag == "VD" and cur["part"]:
+            cur["VD"].append(value_text(tok.text))
         if tag in ("VA", "VP", "VS"):
             if not tok.text[0].isdigit() and len(tok.text) > 2:
                 cur["ordinal"] = True
@@ -340,9 +349,12 @@ class ChainTagger:
     def from_file(cls, path: Path) -> "ChainTagger":
         return cls(ChainHMM.load(path))
 
-    def find(self, text: str) -> List[Chain]:
+    def tagged(self, text: str) -> Tuple[List[Tok], List[str]]:
         # the model is trained on normalized text; normalization keeps offsets
         tokens = tokenize(normalize(text))
         # "ст..161": a repeated dot is noise the model has not seen
         tokens = [t for i, t in enumerate(tokens) if not (t.text == "." and i and tokens[i - 1].text == ".")]
-        return decode(tokens, self.model.predict([t.text for t in tokens]))
+        return tokens, self.model.predict([t.text for t in tokens])
+
+    def find(self, text: str) -> List[Chain]:
+        return decode(*self.tagged(text))

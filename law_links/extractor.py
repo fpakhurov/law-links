@@ -8,9 +8,12 @@ Steps:
 4. a law number shared by several acts is chosen by naive Bayes over the
    context; a chain followed by "названного Кодекса" takes the last code
    (law_links.context);
-5. in an enumeration ("ч. 6 ст. 15, ст.ст. 64 и 73 УК РФ") a chain without
+5. a chain with no law after it takes a law named before it in the same
+   sentence ("Согласно Уголовному кодексу РФ ... статьёй 105"), unless it
+   is followed by the next chain of an enumeration;
+6. in an enumeration ("ч. 6 ст. 15, ст.ст. 64 и 73 УК РФ") a chain without
    a law takes the law of the next chain;
-6. lists of values are expanded into separate links.
+7. lists of values are expanded into separate links.
 """
 
 import itertools
@@ -75,12 +78,20 @@ class Extractor:
         chains = self.chains.find(norm)
         laws: List[Optional[LawMention]] = [self.resolver.resolve(norm, c) for c in chains]
         for i, chain in enumerate(chains):
+            if laws[i] is None and self.anaphora is not None:
+                laws[i] = self.anaphora.resolve(norm, chain.end, laws[:i])
+            if laws[i] is None and not (
+                i + 1 < len(chains) and _ENUM_GAP_RE.match(norm[chain.end : chains[i + 1].start])
+            ):
+                # Only text after the last law named to the right of an
+                # earlier chain: that law belongs to the earlier chain.
+                left = max((m.end for c, m in zip(chains, laws[:i]) if m is not None and m.start >= c.end), default=0)
+                laws[i] = self.resolver.resolve_left(norm, chain, left)
             mention = laws[i]
             if mention is not None and len(mention.candidates) > 1 and self.context_nb is not None:
-                law = self.context_nb.choose(norm, chain.start, mention.end, mention.candidates)
+                start, end = min(chain.start, mention.start), max(chain.end, mention.end)
+                law = self.context_nb.choose(norm, start, end, mention.candidates)
                 laws[i] = LawMention(law, mention.start, mention.end, mention.candidates)
-            elif mention is None and self.anaphora is not None:
-                laws[i] = self.anaphora.resolve(norm, chain.end, laws[:i])
         for i in range(len(chains) - 2, -1, -1):
             if laws[i] is None and laws[i + 1] is not None:
                 if _ENUM_GAP_RE.match(norm[chains[i].end : chains[i + 1].start]):
@@ -90,7 +101,9 @@ class Extractor:
             if mention is None:
                 continue
             for link in expand(chain, mention.law_id):
-                result.append(DetectedLink(link, chain.start, mention.end, mention.candidates))
+                result.append(
+                    DetectedLink(link, min(chain.start, mention.start), max(chain.end, mention.end), mention.candidates)
+                )
         return result
 
 

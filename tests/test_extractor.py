@@ -39,6 +39,25 @@ def test_anaphora(extractor):
     assert [(l.law_id, l.point_article) for l in links] == [(17, "1"), (17, "24")]
 
 
+def test_law_named_before_chain(extractor):
+    text = (
+        "Согласно Уголовному кодексу Российской Федерации, ответственность за соответствующее деяние "
+        "предусмотрена статьёй 105. При этом статья 106 того же Кодекса устанавливает специальный состав."
+    )
+    assert [(l.law_id, l.article) for l in extractor.extract(text)] == [(13, "105"), (13, "106")]
+    links = extractor.extract("По УК РФ ст. 105 и ст. 106 наказываются")
+    assert [(l.law_id, l.article) for l in links] == [(13, "105"), (13, "106")]
+    # An enumeration still takes the law after its last chain.
+    links = extractor.extract("По УК РФ ст. 105, ст. 106 и ч. 1 ст. 2 НК РФ")
+    assert [(l.law_id, l.article) for l in links] == [(15, "105"), (15, "106"), (15, "2")]
+
+
+def test_law_before_chain_needs_document_word(extractor):
+    # "связи" and "аренды" are short titles of laws, not law names here.
+    assert extractor.extract("в связи со смертью кормильца (статья 1089)") == []
+    assert extractor.extract("Гражданского кодекса РФ согласно пункту 4 статьи 25 Федерального закона о регистрации") == []
+
+
 def test_shared_law_number_by_context(extractor):
     text = "протокол опроса, проведенного адвокатом в соответствии с подп. 2 п. 3 ст. 6 Закона N 63-ФЗ"
     assert [l.law_id for l in extractor.extract(text)] == [396]

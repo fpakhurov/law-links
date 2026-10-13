@@ -30,6 +30,17 @@ _STOP_RE = re.compile(
     r"|(?<![0-9a-zа-я])(?:ст|стать[а-я]*|п|пп|пункт[а-я]*|ч|част[а-я]*)\.?\s*\d",
     re.IGNORECASE,
 )
+_SENTENCE_END_RE = re.compile(r"(?<=[а-яa-z0-9)\"])\.\s+(?=[А-ЯA-Z])|;")
+# A law name before a chain must have a document word in it.
+_DOC_WORD_RE = re.compile(
+    r"(?i:кодекс|закон|конституц|указ|постановлени|регламент|\bфз\b)|\b(?:[А-Я]{1,3}К\s+РФ|КоАП)\b"
+)
+# The name of some document right after a chain.
+_DOC_AFTER_RE = re.compile(
+    r"[\s,]*(?:федеральн|закон|кодекс|конституц|постановлени|указ|приказ|распоряжени|положени|правил"
+    r"|регламент|инструкц|устав|договор|соглашени|конвенц|приложени|решени)",
+    re.IGNORECASE,
+)
 
 
 @dataclass(frozen=True)
@@ -143,6 +154,38 @@ class LawResolver:
             return None
         start, end, _ = cands[best_c]
         return LawMention(laws[0], start, end, laws)
+
+    def resolve_left(self, text: str, chain: Chain, start: int) -> Optional[LawMention]:
+        """A law named before a chain in the same sentence ("Согласно
+        Уголовному кодексу РФ ... статьёй 105"). Every word span of
+        text[start:chain.start] after the last sentence end that has a
+        document word ("кодекс", "закон", "УК РФ") is matched to the aliases;
+        the best span wins, the one closest to the chain on a tie. Short
+        alias titles ("О связи") are too common as plain words to be taken
+        without one. A chain followed by a document name unknown to the
+        aliases ("статьи 25 Федерального закона ...") is left alone."""
+        if _DOC_AFTER_RE.match(text, chain.end):
+            return None
+        start = max(start, chain.start - self.max_chars)
+        window = text[start : chain.start]
+        for stop in _SENTENCE_END_RE.finditer(window):
+            start, window = start + stop.end(), window[stop.end() :]
+        tokens = [Token(self.spell(t.text), t.start, t.end) for t in tokenize(window)][-self.max_tokens :]
+        lemmas = [self.lemmatizer.key(t) for t in tokens]
+        spans = [
+            (start + tokens[i].start, start + tokens[j - 1].end, " ".join(lemmas[i:j]))
+            for i in range(len(tokens))
+            for j in range(i + 1, len(tokens) + 1)
+            if _DOC_WORD_RE.search(window, tokens[i].start, tokens[j - 1].end)
+        ]
+        if not spans:
+            return None
+        scored = self.best_aliases([s[2] for s in spans])
+        best = max(range(len(spans)), key=lambda i: (scored[i][0], spans[i][1], -spans[i][0]))
+        top, laws = scored[best]
+        if top < self.threshold:
+            return None
+        return LawMention(laws[0], spans[best][0], spans[best][1], laws)
 
     def lookup(self, name: str) -> List[int]:
         """Laws whose alias has exactly the same lemmas as `name`."""
